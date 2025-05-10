@@ -1,0 +1,40 @@
+{
+"schedules": [
+    {
+      "id": 1,
+      "last_modified": "2025-05-06",
+      "content": {
+        "title": "完成概率论理论作业",
+        "deadline": "2025-05-10",
+        "estimated_duration": 4,
+        "recommended_slots": ["2025-05-08", "2025-05-09"]
+      }
+    },
+    {
+      "id": 2,
+      "last_modified": "2025-05-07",
+      "content": {
+        "title": "完成线性代数实验报告",
+        "deadline": "2025-05-12",
+        "estimated_duration": 5,
+        "recommended_slots": ["2025-05-09", "2025-05-10"]
+      }
+    },
+    {
+      "id": 2,
+      "last_modified": "2025-05-10",
+      "content": {
+        "title": "完成数值分析理论作业",
+        "content": "教材第135-136页\"习题\"，题 1 (2), (3), (4)；2 (3)；3；4；5；7; 8 (1)",
+        "deadline": "2025-05-14",
+        "estimated_duration": 5,
+        "recommended_slots": [
+          "2025-05-11",
+          "2025-05-12",
+          "2025-05-13"
+        ],
+        "conflict_check": "期间有其他日程，如完成概率论理论作业（2025-05-08至2025-05-10），撰写线性代数实验报告（2025-05-09至2025-05-12）等，建议合理规划时间"
+      }
+    }
+  ]
+}
