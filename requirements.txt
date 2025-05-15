@@ -2,3 +2,5 @@ flask
 openai
 pyyaml
 pathlib
+requests
+pytest

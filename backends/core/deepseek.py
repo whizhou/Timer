@@ -74,6 +74,8 @@ def parse_schedule(content, existing_schedules=None):
         stream=False
     )
 
+    if response.choices[0].message.content is None:
+        raise ValueError("Response content is None and cannot be parsed as JSON.")
     result = json.loads(response.choices[0].message.content)
     # deadline = datetime.strptime(result["deadline"], "%Y-%m-%d")
     # result["daily_reminder_start"] = (deadline - timedelta(days=3)).strftime("%Y-%m-%d")  # 截止前3天开始每日提醒

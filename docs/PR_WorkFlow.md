@@ -1,5 +1,7 @@
 ## GitHub Pull Request 流程指南
 
+建议添加 [GitHub SSH]()
+
 ### **一、贡献者（Contributor）视角**  
 
 #### **1. 准备工作**  
