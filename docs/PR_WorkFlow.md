@@ -1,5 +1,12 @@
 ## GitHub Pull Request 流程指南
 
+为简化开发流程，使用 collaborator 模式，即每个人都是仓库的 “管理者”，可以直接在仓库创建分支与合并。但应当只直接操作自己从 `dev` 分支创建的 `feature` 分支，并使用 `P/R` 提交到 `dev` 分支，最后由其他人审核过合并。
+
++ `main` 分支为生产环境使用的稳定分支；禁止直接推送；所有变更必须通过 Pull Request 合并
++ `dev` 分支为日常开发集成分支；功能开发完成后合并到此分支；同样禁止直接推送，必须通过 Pull Request 合并
++ `feature/*` 分支从 `dev` 分支创建，开发完成后合并回 `dev` 分支，合并后删除；由个人管理，可以直接推送，合并是压缩提交历史。
+
+
 ### **一、贡献者（Contributor）视角**  
 
 #### **1. 准备工作**  
@@ -42,7 +49,10 @@
 6. **推送分支到个人 Fork**  
 
    ```bash
-   git push origin feature/your-feature-name
+   # 首次提交
+   git push -u origin feature/your-feature-name
+   # 之后
+   git push
    ```
 
 7. **在 GitHub 上创建 PR**  

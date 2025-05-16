@@ -4,6 +4,8 @@
 
 建议首先阅读并完善 [docs](/docs) 中的文档
 
+关于后端的详细信息请阅读 [README.md](/backends/README.md)
+
 ## 🛠️ Installation
 
 Clone this repo:

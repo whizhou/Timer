@@ -30,7 +30,8 @@ def parse_schedule(content, existing_schedules=None):
         - 时间估算：结合常见作业、实验难度推算合理完成时间
         - 日程简化：提取最重要的任务信息，不删除任何关键信息
         - 结构化输出：统一以标准JSON格式输出日程信息
-        - 冲突检查：检查新生成的日程的持续周期内是否与已有日程的持续时间冲突，如果有冲突，则给出冲突提示（如规划时间的建议，"期间有其他日程，如xx日程（日程时间）等，建议合理规划时间"）
+        - 冲突检查：检查新生成的日程的持续周期内是否与已有日程的持续时间重叠，持续时间定义为推荐的最晚开始时间到截止时间之间的时间段（如"2025-05-08"到"2025-05-10"），
+            如果有重叠，则给出冲突提示（如规划时间的建议，"期间有其他日程，如xx日程（日程时间）等，建议合理规划时间"）
 
         ## 知识储备
         - 理论课程作业通常耗时：2-6小时
@@ -52,13 +53,13 @@ def parse_schedule(content, existing_schedules=None):
         {{
         "title": "生成的日程标题",
         "content": "用户输入的完整任务内容（必要时稍作整理）",
-        "deadline": "YYYY-MM-DD",
+        "deadline": ["YYYY-MM-DD", "HH:MM"],
         "estimated_duration": "预计耗时（小时数）",
-        "recommended_slots": ["推荐的开始时间（YYYY-MM-DD）"],
+        "reminder_start": ["YYYY-MM-DD", "HH:MM"],
         "conflict_check": "冲突提示（如有冲突）"
         }}
         ```
-
+        ## 已有日程
         {existing_schedules_text}
     """).strip()
 
@@ -74,9 +75,17 @@ def parse_schedule(content, existing_schedules=None):
         stream=False
     )
 
+    if response.choices[0].message.content is None:
+        raise ValueError("Response content is None and cannot be parsed as JSON.")
     result = json.loads(response.choices[0].message.content)
     # deadline = datetime.strptime(result["deadline"], "%Y-%m-%d")
     # result["daily_reminder_start"] = (deadline - timedelta(days=3)).strftime("%Y-%m-%d")  # 截止前3天开始每日提醒
+
+    schedule = {
+        "id": None,
+        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "content": result
+    }
     
     return result
 
@@ -97,7 +106,7 @@ existing_schedules = [
 
 input_text = "创建数值分析作业\n"
 input_text += dedent("""
-    @所有人 同学们，本周作业是：教材第135-136页"习题"，题 1 (2), (3), (4)；2 (3)；3；4；5；7; 8 (1)。下周三交作业。
+    @所有人 同学们，本周作业是：教材第136页的"习题"中的题 10；18；以及教材第175-176页的"习题"中的 题 1；7 。下周三交作业。
     """).strip()
 
 print(f"\n\nInput Text:\n{input_text}")
