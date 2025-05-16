@@ -2,6 +2,8 @@ from flask import (
     Blueprint, flash, g, redirect, render_template, request, url_for, jsonify
 )
 from flask import session
+from flask import current_app
+from openai import OpenAI
 
 bp = Blueprint('chat', __name__, url_prefix='/chat')
 
@@ -32,16 +34,26 @@ def chat():
     else:
         return jsonify({'error': 'Invalid request method'}), 405
 
-    
+    messages = session.get('messages', None)
+    ##########################################################################
     # Here you would typically process the message and get a response
     # For now, we'll just echo the message back
-    response = f"You said: {message}"
-    messages = session.get('messages', [])
 
-
+    if messages is None:
+        messages = [{'role': 'system', 'content': "你是Timer，一个智能的日程助手，擅长从学生输入的任务中提取关键信息（如截止时间、任务内容），并智能推断合理的日程标题、主要内容、预计耗时、最晚开始时间。"}]
     messages.append({'role': 'user', 'content': message})
+    client = OpenAI(api_key=current_app.config['DEEPSEEK_API_KEY'], base_url="https://api.deepseek.com")
+    response = client.chat.completions.create(
+        model="deepseek-chat",
+        messages=messages,  # type: ignore
+        stream=False,
+    )
+    response = response.choices[0].message.content
+    ##########################################################################
+
+    # messages.append({'role': 'user', 'content': message})
     messages.append({'role': 'assistant', 'content': response})
 
     session['messages'] = messages
 
-    return jsonify({'messages': messages}), 200
+    return jsonify({'messages': messages, 'response': response}), 200

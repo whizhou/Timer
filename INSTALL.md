@@ -9,8 +9,8 @@
 Use conda environment
 
 ```bash
-conda create -n se python=3.12
-conda activate se
+conda create -n Timer python=3.12
+conda activate Timer
 ```
 
 ```bash
