@@ -16,3 +16,9 @@ conda activate Timer
 ```bash
 pip install -r requirements.txt
 ```
+
+### 1. Deepseek API Key
+
+Save `deepseek_api_key.txt` to path `Timer/backends/config/deepseek_api_key.txt`
+
+> Do not commit APIKEY to Git!!!
