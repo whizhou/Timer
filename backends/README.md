@@ -10,7 +10,7 @@ Contain backend codes for Timer
 conda activate Timer
 cd backends/
 flask run
-```\
+```
 
 可以直接通过网页查看输出的过程（因为现在都是输出 example），如
 
