@@ -26,9 +26,9 @@ def chat():
     """
     if request.method == 'POST':
         # Get the message from the request
-        # data = request.get_json()
-        # message = data.get('message')
-        message = request.form.get('message')  # Not using JSON for simplicity
+        data = request.get_json()
+        message = data.get('message')  # Get message from JSON payload
+        # message = request.form.get('message')  # Not using JSON for simplicity
         if not message:
             return jsonify({'error': 'No message provided'}), 400
     else:

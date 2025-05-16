@@ -15,12 +15,11 @@ def test_multi_chat(client):
     # Test with multiple messages
     messages = [
        "你好",
-       "你是谁？",
-       "你能帮我做什么？",
+       "你是谁？"
     ]
     
     for message in messages:
-        response = client.post('/chat/', data={'message': message})
+        response = client.post('/chat/', json={'message': message})
         assert response.status_code == 200
         assert 'messages' in response.json
         assert 'response' in response.json

@@ -10,6 +10,14 @@ Contain backend codes for Timer
 conda activate Timer
 cd backends/
 flask run
+```\
+
+可以直接通过网页查看输出的过程（因为现在都是输出 example），如
+
+```
+http://127.0.0.1:5000/schedule
+http://127.0.0.1:5000/schedule/1
+http://127.0.0.1:5000/schedule/archive/2
 ```
 
 ## 后端代码结构
@@ -35,16 +43,9 @@ flask run
 + `routes/` 定义了 Flask 路由，包含前端接口和构建接口等
 + `tests/` 包含测试代码
 
-
 ## 接口文档
 
-> 目前接口的交互方式还不统一，包括：
-> 
-> 1. 交互方式不统一，部分接口使用 `json` 交互，但是部分接口直接使用 `data` 属性传输文件
-> 
-> 2. 文件格式不统一，交互文件 (主要为 `dict`) 的格式还没有统一规定。
->
-> 交互方式和前后端代码逻辑有关，大概原则是减少数据大小、方便前端代码编写。~~日后商榷~~
+与后端的所有交互 *目前* 都使用 json 格式，包括上传和接受消息
 
 接口定义代码位于 [routes/](/backends/routes/)，其中 
 
@@ -61,7 +62,7 @@ flask run
 
 ```
 cd backends/
-pytest
+pytest -s  # 由于需要调用api，可能时间较久
 ```
 
 ```

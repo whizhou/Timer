@@ -69,12 +69,12 @@ def test_schedule_delete(client):
     assert response.json == {'success': False}
 
 def test_archive_schedule(client):
-    """Test POST /schedule/archive/<id> archives schedule"""
-    response = client.post('/schedule/archive/1')
+    """Test GET /schedule/archive/<id> archives schedule"""
+    response = client.get('/schedule/archive/1')
     assert response.status_code == 200
     assert response.json == {'success': True}
 
-    response = client.post('/schedule/archive/999')
+    response = client.get('/schedule/archive/999')
     assert response.status_code == 200
     assert response.json == {'success': False}
 

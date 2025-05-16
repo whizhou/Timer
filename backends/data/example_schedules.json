@@ -2,37 +2,42 @@
 "schedules": [
     {
       "id": 1,
-      "last_modified": "2025-05-06",
+      "timestamp": "2025-05-06 12:00:00",
+      "type": "schedule",
       "content": {
-        "title": "完成概率论理论作业",
-        "deadline": "2025-05-10",
-        "estimated_duration": 4,
-        "recommended_slots": ["2025-05-08", "2025-05-09"]
+        "title": "概率与统计",
+        "whole_day": false,
+        "begin_time": ["2025-05-08", "08:00"],
+        "end_time": ["2025-05-08", "10:00"],
+        "location": "公教A101",
+        "remind_before": 30,
+        "repeat": {
+          "type": "weekly",
+          "every": 1,
+          "repeat_until": ["2025-06-30", "23:59"]
+        }
       }
     },
     {
       "id": 2,
-      "last_modified": "2025-05-07",
+      "timestamp": "2025-05-07 14:00:00",
+      "type": "reminder",
       "content": {
         "title": "完成线性代数实验报告",
-        "deadline": "2025-05-12",
-        "estimated_duration": 5,
-        "recommended_slots": ["2025-05-09", "2025-05-10"]
+        "end_time": ["2025-05-12", "23:59"],
+        "remind_start": ["2025-05-08", "08:00"]
       }
     },
     {
       "id": 3,
-      "last_modified": "2025-05-10",
+      "timestamp": "2025-05-10 16:00:00",
+      "type": "reminder",
       "content": {
         "title": "完成数值分析理论作业",
         "content": "教材第135-136页\"习题\"，题 1 (2), (3), (4)；2 (3)；3；4；5；7; 8 (1)",
-        "deadline": "2025-05-14",
-        "estimated_duration": 5,
-        "recommended_slots": [
-          "2025-05-11",
-          "2025-05-12",
-          "2025-05-13"
-        ],
+        "end_time": ["2025-05-14", "23:59"],
+        "remind_start": ["2025-05-12", "08:00"],
+        "remind_before": 30,
         "conflict_check": "期间有其他日程，如完成概率论理论作业（2025-05-08至2025-05-10），撰写线性代数实验报告（2025-05-09至2025-05-12）等，建议合理规划时间"
       }
     }

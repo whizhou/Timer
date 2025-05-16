@@ -27,6 +27,21 @@ class Scheduler:
         """Get the schedules from the JSON file.
         Returns:
             dict: A dictionary containing the schedules.
+        Example:
+            {
+                "schedules": [
+                    {
+                        "id": 1,
+                        "timestamp": 
+                    },
+                    {
+                        "id": 2,
+                        "title": "Schedule 2",
+                        "content": "Content of schedule 2",
+                        "timestamp": "2023-10-02T12:00:00Z"
+                    }
+                ]
+            }
         """
         ###############################################################################
         # Test code
