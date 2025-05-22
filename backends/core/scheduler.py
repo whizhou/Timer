@@ -127,18 +127,16 @@ class Scheduler:
         return [schedule['id'] for schedule in self.example_schedules['schedules']]
         ###############################################################################
 
-    def sync_schedules(self, info: List[Dict]) -> List[Dict]:
+    def sync_schedules(self, schedules: List[Dict]) -> List[Dict]:
         """Synchronize the schedules with the JSON file.
         Args:
-            info (List[Dict]): A list of dictionaries containing the schedule information.
-                id (int): The ID of the schedules.
-                timestamp (str): The timestamp of the schedules.
+            schedules (List[Dict]): All schedules to be synchronized.
         Returns:
-            List[Dict]: A list of dictionaries containing the schedules needing synchronization.
+            List[Dict]: The synchronized schedules.
         """
         ###############################################################################
         # Test code
-        return [schedule for schedule in self.example_schedules['schedules'] if schedule['id'] in [i['id'] for i in info]]
+        return schedules
         ###############################################################################
 
 # Create a global object for Scheduler
