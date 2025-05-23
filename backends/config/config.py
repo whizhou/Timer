@@ -5,12 +5,14 @@ from datetime import timedelta
 from cachelib.file import FileSystemCache
 
 class Config:
+    MODE = 'default'
+
     cur_dir = Path(__file__).resolve().parent
     root_dir = cur_dir.parent
 
     # private key settings
-    _DEEPSEEK_API_KEY = cur_dir.joinpath('deepseek_api_key.txt').read_text().strip()
-    _SCHEDULE_JSON_PATH = cur_dir / '../data/example_schedules.json'
+    __DEEPSEEK_API_KEY = cur_dir.joinpath('deepseek_api_key.txt').read_text().strip()
+    __SCHEDULE_JSON_PATH = cur_dir / '../data'
 
     # session settings
     SESSION_TYPE = 'filesystem'  # 使用文件系统存储会话
@@ -22,17 +24,24 @@ class Config:
     PERMANENT_SESSION_LIFETIME = timedelta(days=7)  # 过期时间
 
     # Scheduler settings
-    SCHEDULER_SETTINGS = {}
+    SCHEDULER_SETTINGS = {
+        'MODE': MODE,
+        'SCHEDULE_JSON_PATH': __SCHEDULE_JSON_PATH,
+    }
+    SCHEDULMANAGER_SETTINGS = {
+        **SCHEDULER_SETTINGS,
+    }
 
     @property
     def DEEPSEEK_API_KEY(self):
-        return self._DEEPSEEK_API_KEY
+        return self.__DEEPSEEK_API_KEY
     
     @property
     def SCHEDULE_JSON_PATH(self):
-        return self._SCHEDULE_JSON_PATH
+        return self.__SCHEDULE_JSON_PATH
 
 class DevelopmentConfig(Config):
+    MODE = 'development'
     # DEBUG = True
     SECRET_KEY = 'dev'
     pass

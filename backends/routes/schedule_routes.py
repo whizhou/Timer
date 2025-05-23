@@ -62,6 +62,7 @@ def schedule():
     else:
         # Return all schedules in a JSON file
         schedules: Dict = scheduler.get_schedules()
+        schedules = {'schedules': schedules['schedules']}
         return jsonify(schedules)
     
 @bp.route('/<int:schedule_id>', methods=['GET', 'PUT', 'DELETE'])
@@ -73,7 +74,7 @@ def schedule_by_id(schedule_id: int):
     - DELETE: Delete schedule by ID
 
     Returns:
-    - GET - JSON: {'schedule': schedule}, where schedule is the schedule with the given ID
+    - GET - JSON: {'schedules': [schedule]}, where schedule is the schedule with the given ID
     - PUT - JSON: {'success': True} if update was successful, otherwise {'success': False}
     - DELETE - JSON: {'success': True} if delete was successful, otherwise {'success': False}
     """
@@ -83,7 +84,7 @@ def schedule_by_id(schedule_id: int):
         schedule: Dict | None = scheduler.get_schedule_by_id(schedule_id)
         if not schedule:
             return jsonify({'error': 'Schedule not found'}), 404
-        schedule = {'schedule': schedule}  # Wrap in a dictionary
+        schedule = {'schedules': [schedule]}  # Wrap in a dictionary
         return jsonify(schedule)
     elif request.method == 'PUT':
         # Update schedule by ID

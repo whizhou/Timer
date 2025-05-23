@@ -4,6 +4,7 @@
         "id": "the id of the schedule",
         "timestamp": "last modified time, in YYYY-MM-DD HH:MM:SS format",
         "type": "schedule",
+        "AI_readable": "bool: whether the schedule is AI readable (optional)",
         "content": {
             "title": "the title of the schedule",
             "content": "the content of the schedule (optional)",
@@ -32,6 +33,7 @@
         "id": "the id of the reminder",
         "timestamp": "last modified time, in YYYY-MM-DD HH:MM:SS format",
         "type": "reminder",
+        "AI_readable": "bool: whether the schedule is AI readable (optional)",
         "content": {
             "title": "the title of the reminder",
             "content": "the content of the reminder (optional)",

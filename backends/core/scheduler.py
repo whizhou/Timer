@@ -5,6 +5,8 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import List, Dict
 
+from .database.schedule_manager import ScheduleManager
+
 
 class Scheduler:
     def __init__(self, app=None):
@@ -22,6 +24,7 @@ class Scheduler:
     def init_app(self, app):
         """Initialize the Scheduler with the given app."""
         self.settings = app.config.get('SCHEDULER_SETTINGS', {})
+        self.manager = ScheduleManager(app)
 
     def get_schedules(self) -> Dict:
         """Get the schedules from the JSON file.
@@ -43,6 +46,8 @@ class Scheduler:
                 ]
             }
         """
+        schedules = self.manager.read_schedules()
+        return {'schedules': schedules}
         ###############################################################################
         # Test code
         return self.example_schedules
@@ -55,7 +60,7 @@ class Scheduler:
         Returns:
             int: The ID of the created schedule or -1 if creation failed.
         """
-        return -1
+        return self.manager.create_schedule(schedule)
 
     def get_schedule_by_id(self, schedule_id: int) -> Dict | None:
         """Get a schedule by its ID.
@@ -64,6 +69,7 @@ class Scheduler:
         Returns:
             dict: The schedule with the given ID.
         """
+        return self.manager.read_schedule_by_id(schedule_id)
         ###############################################################################
         # Test code
         for schedule in self.example_schedules['schedules']:

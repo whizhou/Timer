@@ -22,6 +22,11 @@ class ScheduleManager(Database):
         if auth is not None:
             self.login(auth)
         
+        if self.settings.get('MODE') == 'development':
+            self.login('dev')
+        elif self.settings.get('MODE') == 'testing':
+            self.login('test')
+        
         
     def read_schedules(self) -> dict:
         """Read all schedules from the JSON file.
@@ -44,7 +49,7 @@ class ScheduleManager(Database):
         if len(schedule['schedules']) != 1:
             raise ValueError("Schedule must contain exactly one schedule.")
         self.__file['schedules'].extend(schedule['schedules'])
-        return self.__file
+        return True
     
     def read_schedule_by_id(self, schedule_id: int) -> dict | None:
         """Read a schedule by its ID.
@@ -57,6 +62,33 @@ class ScheduleManager(Database):
             if schedule['id'] == schedule_id:
                 return schedule
         return None
+    
+    def create_schedule(self, schedule: dict) -> int:
+        """Create a new schedule based on the provided content.
+        Args:
+            schedule (dict): Include the content of the schedule and additional information.
+        Returns:
+            int: The ID of the created schedule or -1 if creation failed.
+        """
+        if not isinstance(schedule, dict):
+            raise ValueError("Schedule must be a dictionary.")
+        if 'schedules' not in schedule:
+            raise ValueError("Schedule must contain 'schedules' key.")
+        if len(schedule['schedules']) != 1:
+            raise ValueError("Schedule must contain exactly one schedule.")
+        
+        # Generate a new ID for the schedule
+        new_id = max([s['id'] for s in self.__file['schedules']], default=0) + 1
+        schedule = schedule['schedules'][0]
+        schedule['id'] = new_id
+
+        if 'timestamp' not in schedule or schedule['timestamp'] is None:
+            # If no timestamp is provided, set it to the current time
+            schedule['timestamp'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+        self.__file['schedules'].append(schedule)
+        
+        return new_id
     
     def update_schedule(self, schedule: dict) -> bool:
         """Update an existing schedule in the JSON file.
@@ -73,8 +105,8 @@ class ScheduleManager(Database):
             raise ValueError("Schedule must contain exactly one schedule.")
         
         for i, s in enumerate(self.__file['schedules']):
-            if s['id'] == schedule['schedules'][0]['id']:
-                self.__file['schedules'][i] = schedule['schedules'][0]
+            if s['id'] == schedule['id']:
+                self.__file['schedules'][i] = schedule
                 return True
         return False
     
