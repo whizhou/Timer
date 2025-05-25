@@ -14,6 +14,8 @@
 
       <div id="input" style="width: 40%;float: right;">
         <Form @addcards="addcards"></Form>
+        <button @click = "__test_get">测试：拉取信息</button>
+        <button @click = "__test_post">测试：上传信息</button>
       </div>
 
     </div>
@@ -24,6 +26,8 @@
 <script>
 import Cards from '../components/Cards.vue';
 import Form from '../components/Form.vue';
+import axios from 'axios';
+import * as datamanager from '../components/DataManager.js'
 
 export default {
   name: 'App',
@@ -49,7 +53,16 @@ export default {
     addcards(data) {
       data.id=this.cardList.length;
       this.cardList.push(data);
-    }
+    },
+    __test_get () {
+      datamanager.GetDataFromServer();
+      this.cardList=datamanager.Schedules();
+      
+    },
+    __test_post () {
+      datamanager.ModifySchedules(this.cardList);
+      datamanager.PostDataToServer();
+    },
   }
 }
 </script>
