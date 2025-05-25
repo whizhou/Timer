@@ -1,7 +1,7 @@
 
 import axios from "axios"
 
-const serverURL = 'http://127.0.0.1:5000/schedule'
+const serverURL = 'http://127.0.0.1:5000/schedule/'
 
 var UserSchedules = [];
 
@@ -16,12 +16,12 @@ function GetDataFromServer (user_id=1) {
 }
 
 function PostDataToServer (user_id=1) {
-    axios({
-        methods : 'POST',
-        url : serverURL,
-        params : {
-            id : user_id
-        }
+    axios.post(serverURL,{
+        json : UserSchedules,
+    }).then((res)=>{
+        console.log(res);
+    }).catch (function (error){
+        console.error(error);
     })
 }
 
