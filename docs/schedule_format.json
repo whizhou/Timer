@@ -12,6 +12,7 @@
             "begin_time": ["YYYY-MM-DD", "HH:MM (default 08:00)"],
             "end_time": ["YYYY-MM-DD", "HH:MM (default 23:59)"],
             "location": "the location of the schedule (optional)",
+            "remind_start": ["YYYY-MM-DD (date to start reminding)", "HH:MM (default 08:00)"],
             "remind_before": "the time (in minutes) to remind before the schedule starts (optional)",
             "tag": "the tag of the schedule (optional)",
             "repeat": {

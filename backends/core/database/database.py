@@ -6,9 +6,9 @@ from pathlib import Path
 
 class Database:
     def __init__(self):
-        self.__auth = None  # Authentication object, type: str
-        self.__path = None  # Path to the data file, type: str
-        self.__file = None  # Cache for the file, type: dict
+        self._auth = None  # Authentication object, type: str
+        self._path = None  # Path to the data file, type: str
+        self._file = None  # Cache for the file, type: dict
         self.settings = None  # Settings for the database, type: dict
 
     def login(self, auth) -> bool:
@@ -16,38 +16,43 @@ class Database:
         Args:
             auth: The authentication object or credentials.
         """
-        self.__auth = auth
-        self.__path = Path(self.settings.get('DATA_PATH')) / f'{auth}.json'
+        if self._auth is not None:
+            self.logout()
 
-        if not self.__path.exists():
+        self._auth = auth
+        self._path = Path(self.settings.get('SCHEDULE_JSON_PATH')) / f'{auth}.json'
+
+        if not self._path.exists():
             # Create the file if it doesn't exist
-            self.__path.parent.mkdir(parents=True, exist_ok=True)
-            with open(self.__path, 'w') as file:
-                json.dump({'shedules': []}, file)
-        
-        self.__file = self.read()
+            self._path.parent.mkdir(parents=True, exist_ok=True)
+            self.write({'auth': auth, 'schedules': []})
+
+        self._file = self.read()
 
         return True
     
     def logout(self) -> bool:
         """Logout method to clear the authentication.
         """
-        self.__auth = None
+        if self._auth is None:
+            return False
+        
+        self._auth = None
         
         # Write the current data to the file
-        self.write(self.__file)
+        self.write(self._file)
 
-        self.__path = None
-        self.__file = None
+        self._path = None
+        self._file = None
         return True
 
     def read(self) -> dict:
-        """Read data from the __file in JSON format.
+        """Read data from the _file in JSON format.
         Returns:
             dict: The data read from the database.
         """
         try:
-            with open(self.__path, 'r') as file:
+            with open(self._path, 'r') as file:
                 data = json.load(file)
             return data
         except Exception as e:
@@ -55,28 +60,35 @@ class Database:
             return {}
 
     def write(self, data: dict) -> bool:
-        """Write data to the __file in JSON format.
+        """Write data to the _file in JSON format.
         Args:
             data (dict): The data to be written to the database.
         Returns:
             bool: True if the write operation was successful, False otherwise.
         """
         try:
-            with open(self.__path, 'w') as file:
-                json.dump(data, file)
+            with open(self._path, 'w', encoding='utf-8') as file:
+                json.dump(data, file, indent=4, ensure_ascii=True)
             return True
         except Exception as e:
             print(f"Error writing to file: {e}")
             return False
     
+    def save(self) -> bool:
+        """Save the current _file to disk.
+        Returns:
+            bool: True if the save operation was successful, False otherwise.
+        """
+        return self.write(self._file)
+
     def append(self, data: dict) -> bool:
-        """Append data to the __file in JSON format.
+        """Append data to the _file in JSON format.
         Args:
             data (dict): The data to be appended to the database.
         Returns:
             bool: True if the append operation was successful, False otherwise.
         """
-        self.__file.update(data)
+        self._file.update(data)
         return True
 
     def delete(self) -> bool:
@@ -85,7 +97,7 @@ class Database:
             bool: True if the deletion was successful, False otherwise.
         """
         try:
-            self.__path.unlink()
+            self._path.unlink()
             return True
         except Exception as e:
             print(f"Error deleting file: {e}")

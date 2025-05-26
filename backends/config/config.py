@@ -11,8 +11,8 @@ class Config:
     root_dir = cur_dir.parent
 
     # private key settings
-    __DEEPSEEK_API_KEY = cur_dir.joinpath('deepseek_api_key.txt').read_text().strip()
-    __SCHEDULE_JSON_PATH = cur_dir / '../data'
+    DEEPSEEK_API_KEY = cur_dir.joinpath('deepseek_api_key.txt').read_text().strip()
+    SCHEDULE_JSON_PATH = cur_dir / '../data'
 
     # session settings
     SESSION_TYPE = 'filesystem'  # 使用文件系统存储会话
@@ -25,30 +25,27 @@ class Config:
 
     # Scheduler settings
     SCHEDULER_SETTINGS = {
-        'MODE': MODE,
-        'SCHEDULE_JSON_PATH': __SCHEDULE_JSON_PATH,
-    }
-    SCHEDULMANAGER_SETTINGS = {
-        **SCHEDULER_SETTINGS,
-    }
-
-    @property
-    def DEEPSEEK_API_KEY(self):
-        return self.__DEEPSEEK_API_KEY
+            'MODE': MODE,
+            'SCHEDULE_JSON_PATH': SCHEDULE_JSON_PATH,
+        }
     
-    @property
-    def SCHEDULE_JSON_PATH(self):
-        return self.__SCHEDULE_JSON_PATH
+    
+    SCHEDULEMANAGER_SETTINGS = {
+            'MODE': MODE,
+            'SCHEDULE_JSON_PATH': SCHEDULE_JSON_PATH,
+        }
 
 class DevelopmentConfig(Config):
     MODE = 'development'
     # DEBUG = True
     SECRET_KEY = 'dev'
-    pass
+    
 
 class ProductionConfig(Config):
+    MODE = 'production'
     # DEBUG = False
-    pass
+    
 
 class TestingConfig(Config):
-    pass
+    MODE = 'testing'
+    SECRET_KEY = 'test'

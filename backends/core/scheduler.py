@@ -12,14 +12,6 @@ class Scheduler:
     def __init__(self, app=None):
         if app is not None:
             self.init_app(app)
-        
-        ###############################################################################
-        # Test code
-        ROOT_DIR = Path(__file__).resolve().parent.parent
-        example_schedules_path = ROOT_DIR / 'data' / 'example_schedules.json'
-        example_schedules = json.loads(example_schedules_path.read_text(encoding='utf-8'))
-        self.example_schedules = example_schedules
-        ###############################################################################
 
     def init_app(self, app):
         """Initialize the Scheduler with the given app."""
@@ -48,19 +40,15 @@ class Scheduler:
         """
         schedules = self.manager.read_schedules()
         return {'schedules': schedules}
-        ###############################################################################
-        # Test code
-        return self.example_schedules
-        ###############################################################################
 
-    def create_schedule(self, schedule: dict) -> int:
+    def create_schedule(self, schedules: List[Dict]) -> List[int]:
         """Create a schedule based on the provided content.
         Args:
-            schedule (dict): Include the content of the schedule and additional information.
+            schedules (List[Dict]): A list of schedules to be created.
         Returns:
-            int: The ID of the created schedule or -1 if creation failed.
+            List[int]: The IDs of the created schedules, -1 if creation failed.
         """
-        return self.manager.create_schedule(schedule)
+        return self.manager.create_schedule(schedules)
 
     def get_schedule_by_id(self, schedule_id: int) -> Dict | None:
         """Get a schedule by its ID.
@@ -70,27 +58,18 @@ class Scheduler:
             dict: The schedule with the given ID.
         """
         return self.manager.read_schedule_by_id(schedule_id)
-        ###############################################################################
-        # Test code
-        for schedule in self.example_schedules['schedules']:
-            if schedule['id'] == schedule_id:
-                return schedule
-        return None
-        ###############################################################################
 
-    def update_schedule(self, schedule: dict) -> bool:
+    def update_schedule(self, schedules: List[Dict]) -> bool:
         """Update a schedule by its ID.
         Args:
-            schedule (dict): The updated schedule information.
+            schedules (List[Dict]): A list of schedules to be updated.
         Returns:
-            bool: True if the update was successful, False otherwise.
+            bool: True if all updates were successful, False otherwise.
         """
-        ###############################################################################
-        # Test code
-        if 'id' not in schedule:
-            return False
-        return self.get_schedule_by_id(schedule['id']) is not None
-        ###############################################################################
+        success = []
+        for schedule in schedules:
+            success.append(self.manager.update_schedule(schedule))
+        return all(success)
 
     def delete_schedule(self, schedule_id: int) -> bool:
         """Delete a schedule by its ID.
@@ -99,12 +78,7 @@ class Scheduler:
         Returns:
             bool: True if the deletion was successful, False otherwise.
         """
-        ###############################################################################
-        # Test code
-        if schedule_id < 0:
-            return False
-        return self.get_schedule_by_id(schedule_id) is not None
-        ###############################################################################
+        return self.manager.delete_schedule(schedule_id)
 
 
 
@@ -115,23 +89,22 @@ class Scheduler:
         Returns:
             bool: True if the archiving was successful, False otherwise.
         """
-        ###############################################################################
-        # Test code
-        if schedule_id < 0:
-            return False
-        return self.get_schedule_by_id(schedule_id) is not None
-        ###############################################################################
+        return self.manager.archive_schedule(schedule_id)
 
 
     def get_reminders(self) -> List[int]:
-        """Get reminders from the JSON file.
+        """Get reminders from the JSON file, the schedules' remider_start time is in the past.
         Returns:
-            list[int]: A list containing the id of the schedules that need reminders.
+            List[Dict]: List of schedules that need to be reminded.
         """
-        ###############################################################################
-        # Test code
-        return [schedule['id'] for schedule in self.example_schedules['schedules']]
-        ###############################################################################
+        return self.manager.get_reminders()
+
+    def get_incoming_schedules(self) -> List[Dict]:
+        """Get schedules that are about to be reminded.
+        Returns:
+            List[Dict]: List of schedules that are about to be reminded.
+        """
+        return self.manager.get_incoming_schedules()
 
     def sync_schedules(self, schedules: List[Dict]) -> List[Dict]:
         """Synchronize the schedules with the JSON file.
@@ -140,10 +113,11 @@ class Scheduler:
         Returns:
             List[Dict]: The synchronized schedules.
         """
-        ###############################################################################
-        # Test code
-        return schedules
-        ###############################################################################
-
-# Create a global object for Scheduler
-scheduler = Scheduler()
+        return self.manager.sync_schedules(schedules)
+    
+    def save(self) -> bool:
+        """Save the current cache to the JSON file.
+        Returns:
+            bool: True if the save operation was successful, False otherwise.
+        """
+        return self.manager.save_cache()
