@@ -55,15 +55,14 @@ def schedule():
     from core.core import scheduler
     if request.method == 'POST':
         data = request.get_json()
-        schedules = data.get('schedules', [])
+        schedules: List[Dict] = data.get('schedules', [])
         # Generate schedule based on user input
         schedule_ids = scheduler.create_schedule(schedules)
         return jsonify({'id': schedule_ids})
     else:
         # Return all schedules in a JSON file
-        schedules: Dict = scheduler.get_schedules()
-        schedules = {'schedules': schedules['schedules']}
-        return jsonify(schedules)
+        schedules: List[Dict] = scheduler.get_schedules()
+        return jsonify({'schedules': schedules})
     
 @bp.route('/<int:schedule_id>', methods=['GET', 'PUT', 'DELETE'])
 def schedule_by_id(schedule_id: int):
@@ -74,7 +73,7 @@ def schedule_by_id(schedule_id: int):
     - DELETE: Delete schedule by ID
 
     Returns:
-    - GET - JSON: {'schedules': [schedule]}, where schedule is the schedule with the given ID
+    - GET - JSON: {'schedule': schedule}, where schedule is the schedule with the given ID
     - PUT - JSON: {'success': True} if update was successful, otherwise {'success': False}
     - DELETE - JSON: {'success': True} if delete was successful, otherwise {'success': False}
     """
@@ -84,13 +83,17 @@ def schedule_by_id(schedule_id: int):
         schedule: Dict | None = scheduler.get_schedule_by_id(schedule_id)
         if not schedule:
             return jsonify({'error': 'Schedule not found'}), 404
-        schedule = {'schedules': [schedule]}  # Wrap in a dictionary
+        schedule = {'schedule': schedule}  # Wrap in a dictionary
         return jsonify(schedule)
     elif request.method == 'PUT':
         # Update schedule by ID
         data = request.get_json()
-        updated_schedules = data.get('schedules', [])
-        success = scheduler.update_schedule(updated_schedules)
+        updated_schedule = data.get('schedule')
+
+        if not updated_schedule:
+            return jsonify({'error': 'No schedule data provided'}), 400
+        
+        success = scheduler.update_schedule(updated_schedule)
         return jsonify({'success': success})
     elif request.method == 'DELETE':
         # Delete schedule by ID
@@ -110,8 +113,8 @@ def archive_schedule(schedule_id: int):
     success = scheduler.archive_schedule(schedule_id)
     return jsonify({'success': success})
 
-@bp.route('/reminders', methods=['GET'])
-def reminders():
+@bp.route('/remind_start', methods=['GET'])
+def remind_start():
     """
     Get the schedules for reminders.
 
@@ -119,10 +122,10 @@ def reminders():
         JSON: {'schedules': schedules whose reminder is started}
     """
     from core.core import scheduler
-    schedules = scheduler.get_reminders()
+    schedules = scheduler.get_remind_start()
     return jsonify({'schedules': schedules})
 
-@bp.route('/remind', methods=['GET'])
+@bp.route('/remind_before', methods=['GET'])
 def remind():
     """
     Get the schedules that are becoming active or are active.
@@ -130,7 +133,7 @@ def remind():
         JSON: {'schedules': schedules running or going to run}
     """
     from core.core import scheduler
-    schedules = scheduler.get_reminders()
+    schedules = scheduler.get_remind_before()
     return jsonify({'schedules': schedules})
 
 @bp.route('/sync', methods=['GET'])
@@ -146,10 +149,22 @@ def sync():
     """
     from core.core import scheduler
     data = request.get_json()
-    schedules = data.get('schedules')
+    schedules: List[Dict] = data.get('schedules')
     # Synchronize schedules with the backend
     schedules_synced: List[Dict] = scheduler.sync_schedules(schedules)
     return jsonify({'schedules': schedules_synced})
+
+@bp.route('/quantity', methods=['GET'])
+def quantity():
+    """
+    Get the quantity of schedules.
+
+    Returns:
+        JSON: {'quantity': int} - The number of waiting or running schedules
+    """
+    from core.core import scheduler
+    quantity = scheduler.get_schedule_quantity()
+    return jsonify({'quantity': quantity})
 
 @bp.teardown_request
 def teardown_request(exception):

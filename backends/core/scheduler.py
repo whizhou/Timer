@@ -18,7 +18,7 @@ class Scheduler:
         self.settings = app.config.get('SCHEDULER_SETTINGS', {})
         self.manager = ScheduleManager(app)
 
-    def get_schedules(self) -> Dict:
+    def get_schedules(self) -> List[Dict]:
         """Get the schedules from the JSON file.
         Returns:
             dict: A dictionary containing the schedules.
@@ -38,8 +38,7 @@ class Scheduler:
                 ]
             }
         """
-        schedules = self.manager.read_schedules()
-        return {'schedules': schedules}
+        return self.manager.read_schedules()
 
     def create_schedule(self, schedules: List[Dict]) -> List[int]:
         """Create a schedule based on the provided content.
@@ -59,17 +58,14 @@ class Scheduler:
         """
         return self.manager.read_schedule_by_id(schedule_id)
 
-    def update_schedule(self, schedules: List[Dict]) -> bool:
+    def update_schedule(self, schedule: Dict) -> bool:
         """Update a schedule by its ID.
         Args:
-            schedules (List[Dict]): A list of schedules to be updated.
+            schedule (Dict): The schedule to be updated.
         Returns:
-            bool: True if all updates were successful, False otherwise.
+            bool: True if the update was successful, False otherwise.
         """
-        success = []
-        for schedule in schedules:
-            success.append(self.manager.update_schedule(schedule))
-        return all(success)
+        return self.manager.update_schedule(schedule)
 
     def delete_schedule(self, schedule_id: int) -> bool:
         """Delete a schedule by its ID.
@@ -92,19 +88,19 @@ class Scheduler:
         return self.manager.archive_schedule(schedule_id)
 
 
-    def get_reminders(self) -> List[int]:
-        """Get reminders from the JSON file, the schedules' remider_start time is in the past.
+    def get_remind_start(self) -> List[Dict]:
+        """Get reminders from the JSON file, the schedules' remind_start time is in the past.
         Returns:
             List[Dict]: List of schedules that need to be reminded.
         """
-        return self.manager.get_reminders()
+        return self.manager.get_remind_start()
 
-    def get_incoming_schedules(self) -> List[Dict]:
+    def get_remind_before(self) -> List[Dict]:
         """Get schedules that are about to be reminded.
         Returns:
             List[Dict]: List of schedules that are about to be reminded.
         """
-        return self.manager.get_incoming_schedules()
+        return self.manager.get_remind_before()
 
     def sync_schedules(self, schedules: List[Dict]) -> List[Dict]:
         """Synchronize the schedules with the JSON file.
@@ -121,3 +117,10 @@ class Scheduler:
             bool: True if the save operation was successful, False otherwise.
         """
         return self.manager.save_cache()
+    
+    def get_schedule_quantity(self) -> int:
+        """Get the total number of schedules.
+        Returns:
+            int: The total number of schedules.
+        """
+        return self.manager.get_schedule_quantity()

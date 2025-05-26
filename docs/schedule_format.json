@@ -27,7 +27,7 @@
                 "without any specific format, just plain text"
             ],
             "archive": "bool: whether the schedule is archived (optional)",
-            "archive_time": ["YYYY-MM-DD", "HH:MM (default 23:59)"]
+            "archive_time": "archived time, in YYYY-MM-DD HH:MM:SS format"
         }
     },
     {
@@ -49,7 +49,7 @@
                 "without any specific format, just plain text"
             ],
             "archive": "bool: whether the reminder is archived (optional)",
-            "archive_time": ["YYYY-MM-DD", "HH:MM (default 23:59)"]
+            "archive_time": "archived time, in YYYY-MM-DD HH:MM:SS format"
         }
     }
 ],

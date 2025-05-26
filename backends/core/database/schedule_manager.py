@@ -35,7 +35,7 @@ class ScheduleManager(Database):
             self.login('default')
         
         
-    def read_schedules(self) -> dict:
+    def read_schedules(self) -> List[Dict]:
         """Read all schedules from the JSON file.
         Returns:
             list: The schedules read from the file.
@@ -139,14 +139,16 @@ class ScheduleManager(Database):
         for i, schedule in enumerate(self._file['schedules']):
             if schedule['id'] == schedule_id:
                 schedule['archived'] = True
+                schedule['archived_time'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                 del self._file['schedules'][i]
+
                 if 'archived_schedules' not in self._file:
                     self._file['archived_schedules'] = []
                 self._file['archived_schedules'].append(schedule)
                 return True
         return False
     
-    def get_reminders(self) -> List[Dict]:
+    def get_remind_start(self) -> List[Dict]:
         """Get reminders from the JSON file.
         Returns:
             List[Dict]: The list of schedules that need to be reminded.
@@ -160,7 +162,7 @@ class ScheduleManager(Database):
                     reminders.append(schedule)
         return reminders
     
-    def get_incoming_schedules(self) -> List[Dict]:
+    def get_remind_before(self) -> List[Dict]:
         """Get schedules that are becoming active.
         Returns:
             List[Dict]: The list of schedules that are becoming active.
@@ -192,7 +194,7 @@ class ScheduleManager(Database):
             if schedule['id'] == -1:
                 # If the schedule ID is -1, it means it's a new schedule
                 # Generate a new ID for the schedule
-                self.create_schedule(schedule)
+                self.create_schedule([schedule])
             else:
                 for i, s in enumerate(self._file['schedules']):
                     if s['id'] == schedule['id']:
@@ -201,8 +203,10 @@ class ScheduleManager(Database):
                         time_schedule = datetime.strptime(schedule['timestamp'], '%Y-%m-%d %H:%M:%S')
                         if time_s < time_schedule:
                             self._file['schedules'][i] = schedule
+                        break
                 else:
-                    self._file['schedules'].append(schedule)
+                    # If the schedule ID is not found, create a new schedule
+                    self.create_schedule([schedule])
         
         return self._file['schedules']
     
@@ -217,4 +221,11 @@ class ScheduleManager(Database):
         except Exception as e:
             print(f"Error saving schedules: {e}")
             return False
+        
+    def get_schedule_quantity(self) -> int:
+        """Get the total number of schedules.
+        Returns:
+            int: The total number of schedules.
+        """
+        return len(self._file.get('schedules', []))
 

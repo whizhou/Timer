@@ -2,14 +2,15 @@
 # This class is designed to be extended by other classes that require database functionality.
 # Do not specifically write for flask framework
 import json
+from typing import Dict, List
 from pathlib import Path
 
 class Database:
     def __init__(self):
-        self._auth = None  # Authentication object, type: str
-        self._path = None  # Path to the data file, type: str
-        self._file = None  # Cache for the file, type: dict
-        self.settings = None  # Settings for the database, type: dict
+        self._auth: str | None = None  # Authentication object, type: str
+        self._path: Path | None = None  # Path to the data file, type: Path
+        self._file: dict = {}  # Cache for the file, type: dict
+        self.settings: dict = {}  # Settings for the database, type: dict
 
     def login(self, auth) -> bool:
         """Login method to set the authentication.
