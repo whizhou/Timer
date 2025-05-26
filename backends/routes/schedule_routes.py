@@ -58,7 +58,7 @@ def schedule():
         schedules: List[Dict] = data.get('schedules', [])
         # Generate schedule based on user input
         schedule_ids = scheduler.create_schedule(schedules)
-        return jsonify({'id': schedule_ids})
+        return jsonify({'ids': schedule_ids})
     else:
         # Return all schedules in a JSON file
         schedules: List[Dict] = scheduler.get_schedules()

@@ -45,7 +45,7 @@ def test_schedule_post_create(client):
         new_schedule = example_schedules[0]
         new_schedule['id'] = random.randint(10000, 99999)
         response = client.post('/schedule/', json={'schedules': [new_schedule]})
-        created_schedule_id = response.get_json()['id'][0]
+        created_schedule_id = response.get_json()['ids'][0]
 
         test_schedules = get_test_schedules()
         new_created_schedule = test_schedules[-1]  # Assuming the new schedule is added at the end
