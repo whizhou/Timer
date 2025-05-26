@@ -2,6 +2,8 @@
 
 Contain backend codes for Timer
 
+目前已经完成了基本的日程管理功能，可以完成创建、修改、删除、归档等操作。
+
 ## 运行后端
 
 运行以下指令，之后可以看到命令行输出后端地址，一般为 `http://127.0.0.1:5000`
@@ -45,6 +47,8 @@ http://127.0.0.1:5000/schedule/archive/2
 
 ## 接口文档
 
+具体接口文档见 [Backends_API.md](../docs/Backends_API.md)
+
 与后端的所有交互 *目前* 都使用 json 格式，包括上传和接受消息
 
 接口定义代码位于 [routes/](/backends/routes/)，其中 
@@ -60,12 +64,13 @@ http://127.0.0.1:5000/schedule/archive/2
 
 ## 测试
 
-```
+```sh
 cd backends/
-pytest -s  # 由于需要调用api，可能时间较久
+pytest -k "schedule"  # 测试 shedule_routes 模块
+pytest -k "chat"  # 测试 chat 模块，需要调用 Deepseek API，需要一定时间
 ```
 
-```
+```sh
 cd backends/tests
-python chat_individual.py
+python chat_individual.py  # 测试 requests 库调用 chat 模块并保持上下文
 ```
