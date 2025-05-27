@@ -1,20 +1,20 @@
 <template>
   <el-card class="box-card">
   <div slot="header" class="clearfix">
-    <span><h3>{{cardData.name}}</h3></span>
+    <span><h3>{{cardData.content.title}}</h3></span>
     <el-button style="float: right; padding: 3px 0" type="text" @click="del(cardData.id)">删除</el-button>
   </div>
   <div class="text item">
-    <b>地点：</b>{{ cardData.region }}
+    <b>地点：</b>{{ cardData.content.location }}
   </div>
   <div class="text item">
-    <b>时间：</b>{{ cardData.date2 }}
+    <b>时间：</b>{{ cardData.content.begin_time }} ~ {{ cardData.content.end_time }}
   </div>
   <div class="text item">
-    <b>内容：</b>{{ cardData.cont }}
+    <b>内容：</b>{{ cardData.content.content }}
   </div>
   <div class="text item">
-    <b>补充：</b>{{ cardData.extra }}
+    <b>类型：</b>{{ cardData.type }}
   </div>
 </el-card>
 
