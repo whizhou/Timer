@@ -57,7 +57,7 @@ def schedule():
         data = request.get_json()
         schedules: List[Dict] = data.get('schedules', [])
         # Generate schedule based on user input
-        schedule_ids = scheduler.create_schedule(schedules)
+        schedule_ids: List[int] = scheduler.create_schedule(schedules)
         return jsonify({'ids': schedule_ids})
     else:
         # Return all schedules in a JSON file
@@ -88,13 +88,15 @@ def schedule_by_id(schedule_id: int):
     elif request.method == 'PUT':
         # Update schedule by ID
         data = request.get_json()
-        updated_schedule = data.get('schedule')
+        updated_schedule = data.get('schedule', None)
 
         if not updated_schedule:
             return jsonify({'error': 'No schedule data provided'}), 400
+        elif not isinstance(updated_schedule, dict):
+            return jsonify({'error': 'Invalid schedule data format'}), 400
         
         success = scheduler.update_schedule(updated_schedule)
-        return jsonify({'success': success})
+        return jsonify({'success': success}) 
     elif request.method == 'DELETE':
         # Delete schedule by ID
         success = scheduler.delete_schedule(schedule_id)
@@ -149,7 +151,7 @@ def sync():
     """
     from core.core import scheduler
     data = request.get_json()
-    schedules: List[Dict] = data.get('schedules')
+    schedules: List[Dict] = data.get('schedules', [])
     # Synchronize schedules with the backend
     schedules_synced: List[Dict] = scheduler.sync_schedules(schedules)
     return jsonify({'schedules': schedules_synced})
