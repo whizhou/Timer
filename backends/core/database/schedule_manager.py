@@ -84,7 +84,7 @@ class ScheduleManager(Database):
         created_ids = []
         for sched in schedules:
 
-            if 'id' not in sched or sched['id'] is None:
+            if 'id' not in sched or sched['id'] == -1:
                 # If no ID is provided, generate a new ID
                 new_id = max([s['id'] for s in self._file['schedules']], default=0) + 1
                 sched['id'] = new_id
@@ -110,9 +110,24 @@ class ScheduleManager(Database):
         if not isinstance(schedule, dict):
             raise ValueError("Schedule must be a dictionary.")
         
+        if 'timestamp' not in schedule:
+            schedule['timestamp'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
         for i, s in enumerate(self._file['schedules']):
             if s['id'] == schedule['id']:
-                self._file['schedules'][i] = schedule
+                # Update the existing schedule with 
+                # the keys and values from the provided schedule
+                for key, value in schedule.items():
+                    if key != 'content':
+                        self._file['schedules'][i][key] = value
+                    else:
+                        # If the key is 'content', update the content separately
+                        for k, v in value.items():
+                            self._file['schedules'][i]['content'][k] = v
+                # Delete the keys in the schedule that are not in the existing schedule
+                for key in list(self._file['schedules'][i]['content'].keys()):
+                    if key not in schedule.get('content', {}):
+                        del self._file['schedules'][i]['content'][key]
                 return True
         return False
     
