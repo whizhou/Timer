@@ -116,10 +116,10 @@ class ScheduleManager(Database):
             if s['id'] == schedule['id']:
                 self._file['schedules'][i] = schedule
                 return True
-        else:
-            # If the schedule ID is not found, create a new schedule
-            self.create_schedule([schedule])
-            return True
+        # else:
+        #     # If the schedule ID is not found, create a new schedule
+        #     self.create_schedule([schedule])
+        #     return True
         return False
     
     def delete_schedule(self, schedule_id: int) -> bool:
