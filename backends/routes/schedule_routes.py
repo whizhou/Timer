@@ -13,51 +13,19 @@ def schedule():
     Handle schedule requests.
 
     - GET: Return all schedules in a JSON file
-    - POST: Receive user input for task content, generate schedule and return JSON data
+    - POST: Create new schedules based on the provided content.
 
     Returns:
-    - POST: {'id': schedule_ids}, where schedule_ids is the list of IDs of the created schedules
-    - GET: JSON data containing the schedule information in the following format:
+    - POST: {'ids': schedule_ids}, where ids is the list of IDs of the created schedules
+    - GET: JSON data containing the schedule information in the {'schedules': List[Dict]} format
 
-        {
-        "schedules": [
-            {
-                "id": "the id of the schedule",
-            "timestamp": "last modified time, in YYYY-MM-DD HH:MM:SS format",
-            "type": "schedule",
-            "content": {
-                "title": "the title of the schedule",
-                "content": "the content of the schedule (optional)",
-                "whole_day": "bool: whether the schedule is a whole day event",
-                "begin_time": ["YYYY-MM-DD", "HH:MM (default 08:00)"],
-                "end_time": ["YYYY-MM-DD", "HH:MM (default 23:59)"],
-                "location": "the location of the schedule (optional)",
-                "remind_before": "the time (in minutes) to remind before the schedule starts (optional)",
-                "tag": "the tag of the schedule (optional)",
-                "repeat": {
-                    "repeat": "bool: whether the schedule is a repeat event",
-                    "type": "the type of repeat (e.g., daily, weekly, monthly) (optional)",
-                    "every": "the interval of repeat (e.g., 1) (optional)",
-                    "repeat_until": ["YYYY-MM-DD", "HH:MM (default 23:59)"]
-                },
-                "additional_info": [
-                    "any additional information related to the schedule (optional)",
-                    "this can include links, notes, or any other relevant details",
-                    "without any specific format, just plain text"
-                ]
-            },
-            {
-                ...
-            }
-        ]
-        }
     """
     from core.core import scheduler
     if request.method == 'POST':
         data = request.get_json()
         schedules: List[Dict] = data.get('schedules', [])
         # Generate schedule based on user input
-        schedule_ids = scheduler.create_schedule(schedules)
+        schedule_ids: List[int] = scheduler.create_schedule(schedules)
         return jsonify({'ids': schedule_ids})
     else:
         # Return all schedules in a JSON file
@@ -81,20 +49,24 @@ def schedule_by_id(schedule_id: int):
     if request.method == 'GET':
         # Get schedule by ID
         schedule: Dict | None = scheduler.get_schedule_by_id(schedule_id)
-        if not schedule:
+        if schedule is None:
             return jsonify({'error': 'Schedule not found'}), 404
-        schedule = {'schedule': schedule}  # Wrap in a dictionary
-        return jsonify(schedule)
+        
+        return jsonify({'schedule': schedule})
+    
     elif request.method == 'PUT':
         # Update schedule by ID
         data = request.get_json()
-        updated_schedule = data.get('schedule')
+        updated_schedule = data.get('schedule', None)
 
-        if not updated_schedule:
+        if updated_schedule is None:
             return jsonify({'error': 'No schedule data provided'}), 400
+        elif not isinstance(updated_schedule, dict):
+            return jsonify({'error': 'Invalid schedule data format'}), 400
         
-        success = scheduler.update_schedule(updated_schedule)
-        return jsonify({'success': success})
+        success = scheduler.update_schedule(schedule_id, updated_schedule)
+        return jsonify({'success': success}) 
+    
     elif request.method == 'DELETE':
         # Delete schedule by ID
         success = scheduler.delete_schedule(schedule_id)
@@ -149,7 +121,7 @@ def sync():
     """
     from core.core import scheduler
     data = request.get_json()
-    schedules: List[Dict] = data.get('schedules')
+    schedules: List[Dict] = data.get('schedules', [])
     # Synchronize schedules with the backend
     schedules_synced: List[Dict] = scheduler.sync_schedules(schedules)
     return jsonify({'schedules': schedules_synced})

@@ -21,22 +21,7 @@ class Scheduler:
     def get_schedules(self) -> List[Dict]:
         """Get the schedules from the JSON file.
         Returns:
-            dict: A dictionary containing the schedules.
-        Example:
-            {
-                "schedules": [
-                    {
-                        "id": 1,
-                        "timestamp": 
-                    },
-                    {
-                        "id": 2,
-                        "title": "Schedule 2",
-                        "content": "Content of schedule 2",
-                        "timestamp": "2023-10-02T12:00:00Z"
-                    }
-                ]
-            }
+            dict: A List of schedules read from the file.
         """
         return self.manager.read_schedules()
 
@@ -54,17 +39,21 @@ class Scheduler:
         Args:
             schedule_id (int): The ID of the schedule.
         Returns:
-            dict: The schedule with the given ID.
+            dict | None: The schedule with the given ID, None if not found.
         """
         return self.manager.read_schedule_by_id(schedule_id)
 
-    def update_schedule(self, schedule: Dict) -> bool:
+    def update_schedule(self, schedule_id: int, schedule: Dict) -> bool:
         """Update a schedule by its ID.
         Args:
+            schedule_id (int): The ID of the schedule to update.
             schedule (Dict): The schedule to be updated.
         Returns:
             bool: True if the update was successful, False otherwise.
         """
+        if 'id' not in schedule:
+            schedule['id'] = schedule_id
+        assert schedule['id'] == schedule_id, "Schedule ID mismatch"
         return self.manager.update_schedule(schedule)
 
     def delete_schedule(self, schedule_id: int) -> bool:
@@ -75,7 +64,6 @@ class Scheduler:
             bool: True if the deletion was successful, False otherwise.
         """
         return self.manager.delete_schedule(schedule_id)
-
 
 
     def archive_schedule(self, schedule_id: int) -> bool:
