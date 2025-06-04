@@ -4,6 +4,7 @@
         "id": "the id of the schedule",
         "timestamp": "last modified time, in YYYY-MM-DD HH:MM:SS format",
         "type": "schedule",
+        "AI_readable": "bool: whether the schedule is AI readable (optional)",
         "content": {
             "title": "the title of the schedule",
             "content": "the content of the schedule (optional)",
@@ -11,6 +12,7 @@
             "begin_time": ["YYYY-MM-DD", "HH:MM (default 08:00)"],
             "end_time": ["YYYY-MM-DD", "HH:MM (default 23:59)"],
             "location": "the location of the schedule (optional)",
+            "remind_start": ["YYYY-MM-DD (date to start reminding)", "HH:MM (default 08:00)"],
             "remind_before": "the time (in minutes) to remind before the schedule starts (optional)",
             "tag": "the tag of the schedule (optional)",
             "repeat": {
@@ -23,13 +25,16 @@
                 "any additional information related to the schedule (optional)",
                 "this can include links, notes, or any other relevant details",
                 "without any specific format, just plain text"
-            ]
+            ],
+            "archive": "bool: whether the schedule is archived (optional)",
+            "archive_time": "archived time, in YYYY-MM-DD HH:MM:SS format"
         }
     },
     {
         "id": "the id of the reminder",
         "timestamp": "last modified time, in YYYY-MM-DD HH:MM:SS format",
         "type": "reminder",
+        "AI_readable": "bool: whether the schedule is AI readable (optional)",
         "content": {
             "title": "the title of the reminder",
             "content": "the content of the reminder (optional)",
@@ -42,8 +47,11 @@
                 "any additional information related to the reminder (optional)",
                 "this can include links, notes, or any other relevant details",
                 "without any specific format, just plain text"
-            ]
+            ],
+            "archive": "bool: whether the reminder is archived (optional)",
+            "archive_time": "archived time, in YYYY-MM-DD HH:MM:SS format"
         }
     }
-]
+],
+"archived_schedules": []
 }

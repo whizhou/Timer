@@ -3,9 +3,9 @@ from datetime import timedelta
 from flask_session import Session
 from config.config import Config, DevelopmentConfig
 # from .extensions import db, cache  # 示例扩展
-from core.scheduler import scheduler
+from core.core import scheduler
 
-def create_app(cfg: Config = DevelopmentConfig()):
+def create_app(cfg=DevelopmentConfig):
     app = Flask(__name__)
     app.config.from_object(cfg)
 

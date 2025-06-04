@@ -5,3 +5,4 @@ pathlib
 requests
 pytest
 Flask-Session
+cachelib
