@@ -26,9 +26,10 @@ class Database:
         if not self._path.exists():
             # Create the file if it doesn't exist
             self._path.parent.mkdir(parents=True, exist_ok=True)
-            self.write({'auth': auth, 'schedules': []})
-
-        self._file = self.read()
+            self._file = {'auth': auth, 'schedules': []}
+            self.write(self._file)
+        else:
+            self._file = self.read()
 
         return True
     
@@ -38,17 +39,17 @@ class Database:
         if self._auth is None:
             return False
         
-        self._auth = None
-        
         # Write the current data to the file
         self.write(self._file)
 
+        # Clear the authentication and file cache
+        self._auth = None
         self._path = None
-        self._file = None
+        self._file = {}
         return True
 
     def read(self) -> dict:
-        """Read data from the _file in JSON format.
+        """Read data from the _path in JSON format.
         Returns:
             dict: The data read from the database.
         """
@@ -61,7 +62,7 @@ class Database:
             return {}
 
     def write(self, data: dict) -> bool:
-        """Write data to the _file in JSON format.
+        """Write data to the _path in JSON format.
         Args:
             data (dict): The data to be written to the database.
         Returns:
@@ -69,7 +70,7 @@ class Database:
         """
         try:
             with open(self._path, 'w', encoding='utf-8') as file:
-                json.dump(data, file, indent=4, ensure_ascii=True)
+                json.dump(data, file, indent=2, ensure_ascii=True)
             return True
         except Exception as e:
             print(f"Error writing to file: {e}")
@@ -93,7 +94,8 @@ class Database:
         return True
 
     def delete(self) -> bool:
-        """Delete the file 
+        """Delete the file at the _path.
+        This method attempts to delete the file associated with the current authentication.
         Returns:
             bool: True if the deletion was successful, False otherwise.
         """

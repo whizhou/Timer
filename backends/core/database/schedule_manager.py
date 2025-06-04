@@ -17,7 +17,7 @@ class ScheduleManager(Database):
     def __del__(self):
         """Destructor to clean up resources."""
         # print("ScheduleManager instance is being deleted.")
-        self.logout()
+        # self.logout()
 
     def init_app(self, app, auth=None):
         """Initialize the ScheduleManager with the given app.
@@ -42,6 +42,7 @@ class ScheduleManager(Database):
         """
         return self._file.get('schedules', [])
     
+
     def write_schedule(self, schedule: dict) -> bool:
         """Write a new schedule to the JSON file.
         Args:
@@ -49,14 +50,12 @@ class ScheduleManager(Database):
         Returns:
             bool: True if the write operation was successful, False otherwise.
         """
-        if not isinstance(schedule, dict):
-            raise ValueError("Schedule must be a dictionary.")
-        if 'schedules' not in schedule:
-            raise ValueError("Schedule must contain 'schedules' key.")
-        if len(schedule['schedules']) != 1:
-            raise ValueError("Schedule must contain exactly one schedule.")
-        self._file['schedules'].extend(schedule['schedules'])
+        assert isinstance(schedule, dict), "Schedule must be a dictionary."
+        assert 'id' in schedule, "Schedule must have an 'id' key."
+        
+        self._file['schedules'].extend(schedule)
         self.write(self._file)  # Write the updated file to disk
+
         return True
     
     def read_schedule_by_id(self, schedule_id: int) -> dict | None:
@@ -78,8 +77,7 @@ class ScheduleManager(Database):
         Returns:
             int: The ID of the created schedule or -1 if creation failed.
         """
-        if not isinstance(schedules, list):
-            raise ValueError("Schedule must be a list of dictionaries.")
+        assert isinstance(schedules, list), "Schedules must be a list of dictionaries."
 
         created_ids = []
         for sched in schedules:
@@ -102,33 +100,26 @@ class ScheduleManager(Database):
         
     def update_schedule(self, schedule: dict) -> bool:
         """Update an existing schedule in the JSON file.
+        This method will cover the file with the provided schedule.
         Args:
             schedule (dict): The updated schedule information.
         Returns:
             bool: True if the update was successful, False otherwise.
         """
-        if not isinstance(schedule, dict):
-            raise ValueError("Schedule must be a dictionary.")
+        assert isinstance(schedule, dict), "Schedule must be a dictionary."
+        assert 'id' in schedule, "Schedule must have an 'id' key."
         
         if 'timestamp' not in schedule:
             schedule['timestamp'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
         for i, s in enumerate(self._file['schedules']):
             if s['id'] == schedule['id']:
-                # Update the existing schedule with 
-                # the keys and values from the provided schedule
-                for key, value in schedule.items():
-                    if key != 'content':
-                        self._file['schedules'][i][key] = value
-                    else:
-                        # If the key is 'content', update the content separately
-                        for k, v in value.items():
-                            self._file['schedules'][i]['content'][k] = v
-                # Delete the keys in the schedule that are not in the existing schedule
-                for key in list(self._file['schedules'][i]['content'].keys()):
-                    if key not in schedule.get('content', {}):
-                        del self._file['schedules'][i]['content'][key]
+                self._file['schedules'][i] = schedule
                 return True
+        else:
+            # If the schedule ID is not found, create a new schedule
+            self.create_schedule([schedule])
+            return True
         return False
     
     def delete_schedule(self, schedule_id: int) -> bool:
@@ -204,6 +195,7 @@ class ScheduleManager(Database):
         """
         # Compare the timestamps between every schedule the _file and the given schedules
         # If the timestamps are different, update the _file
+        assert isinstance(schedules, list), "Schedules must be a list of dictionaries."
 
         for schedule in schedules:
             if schedule['id'] == -1:
@@ -231,7 +223,7 @@ class ScheduleManager(Database):
             bool: True if the save operation was successful, False otherwise.
         """
         try:
-            self.write(self._file)
+            self.save()
             return True
         except Exception as e:
             print(f"Error saving schedules: {e}")
