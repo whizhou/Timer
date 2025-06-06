@@ -28,16 +28,39 @@
 
     ```json
     {
+        {
         "schedules": [
-            {
-                "id": "int",
-                "timestamp": "YYYY-MM-DD HH:MM:SS",
-                
-            },
-            {
-
+          {
+            "id": "the id of the schedule",
+            "timestamp": "last modified time, in YYYY-MM-DD HH:MM:SS format",
+            "type": "schedule",
+            "content": {
+              "title": "the title of the schedule",
+              "content": "the content of the schedule (optional)",
+              "whole_day": "bool: whether the schedule is a whole day event",
+              "begin_time": ["YYYY-MM-DD", "HH:MM (default 08:00)"],
+              "end_time": ["YYYY-MM-DD", "HH:MM (default 23:59)"],
+              "location": "the location of the schedule (optional)",
+              "remind_before": "the time (in minutes) to remind before the schedule starts (optional)",
+              "tag": "the tag of the schedule (optional)",
+              "repeat": {
+                  "repeat": "bool: whether the schedule is a repeat event",
+                  "type": "the type of repeat (e.g., daily, weekly, monthly) (optional)",
+                  "every": "the interval of repeat (e.g., 1) (optional)",
+                  "repeat_until": ["YYYY-MM-DD", "HH:MM (default 23:59)"]
+              },
+              "additional_info": [
+                  "any additional information related to the schedule (optional)",
+                  "this can include links, notes, or any other relevant details",
+                  "without any specific format, just plain text"
+              ]
             }
+          },
+          {
+            "id": 1
+          }
         ]
+        }
     }
     ```
 
