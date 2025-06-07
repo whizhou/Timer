@@ -11,6 +11,11 @@ import Chat from "vue3-beautiful-chat"
 
 const app = createApp(App)
 
+var UserSchedules = []
+
+app.provide("UserSchedules",UserSchedules)
+app.config.globalProperties.$UserSchedules = UserSchedules;
+
 app.component("leftbar",LeftBar)
 app.component("chatzone",ChatZone)
 app.use(ElementPlus)

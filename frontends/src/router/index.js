@@ -12,7 +12,7 @@ const router = createRouter({
       component: HomeView,
     },
     {
-      path: '/dpchat',
+      path: '/deepseekchat',
       name: 'deepseekchat',
       component: DeepseekChat,
     },

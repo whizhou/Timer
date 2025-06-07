@@ -1,80 +1,91 @@
 <template>
-  <el-card class="box-card">
-  <div slot="header" class="clearfix">
-    <span><h3>{{cardData.name}}</h3></span>
-    <el-button style="float: right; padding: 3px 0" type="text" @click="del(cardData.id)">删除</el-button>
+  <div class="cards-container">
+    <el-card 
+      v-for="card in cards" 
+      :key="card.id" 
+      class="auto-size-card"
+    >
+      <template #header>
+        <div class="card-header">
+          <span><b>{{ card.content.title }}</b></span>
+          <el-button 
+            class="delete-btn" 
+            type="text" 
+            @click="deleteCards(card.id)"
+          >删除</el-button>
+        </div>
+      </template>
+      <div class="card-content">
+        <div v-for="(value, key) in card.content">
+          <p v-if="key != 'title'">
+            <b>{{ key }} : </b>{{ value }}
+          </p>
+        </div>
+      </div>
+    </el-card>
   </div>
-  <div class="text item">
-    <b>地点：</b>{{ cardData.region }}
-  </div>
-  <div class="text item">
-    <b>时间：</b>{{ cardData.date2 }}
-  </div>
-  <div class="text item">
-    <b>内容：</b>{{ cardData.cont }}
-  </div>
-  <div class="text item">
-    <b>补充：</b>{{ cardData.extra }}
-  </div>
-</el-card>
-
 </template>
 
-<script>
-export default {
-  name: 'Card',
-  props: {
-    cardData: {
-      type: Object,
-      required: true
-    }
-  },
-  methods : {
-    del (id) {
-      this.$emit("delcards",id)
-    }
+<script setup>
+import { DeleteSchedule } from '../utils/DataManager';
+import { ref, watch } from 'vue';
+
+const props = defineProps({
+  cards: {
+    type: Array,
+    required: true
   }
-}
+});
+
+const deleteCards = (id) => {
+  DeleteSchedule(id);
+};
+
 </script>
 
-<style>
-  .text {
-    font-size: 14px;
-  }
-
-  .item {
-    margin-bottom: 18px;
-  }
-
-  .clearfix:before,
-  .clearfix:after {
-    display: table;
-    content: "";
-  }
-  .clearfix:after {
-    clear: both
-  }
-
-  .box-card {
-    width: 480px;
-  }
-</style>
-<style>
-@media (max-width: 768px) {
-  .container {
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .el-card {
-    width: 90%;
-    margin-bottom: 20px;
-  }
+<style scoped>
+.cards-container {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start; /* 重要：避免容器高度拉伸 */
+  gap: 16px;
+  min-height: 0; /* 防止高度溢出 */
 }
 
-@media (min-width: 769px) {
-  .el-card {
-    width:60%;
-  }
+.auto-size-card {
+  width: auto;
+  min-width: 200px;
+  max-width: 100%;
+  height: auto !important; /* 覆盖可能的高度设置 */
+  display: flex;
+  flex-direction: column;
+}
+
+/* 使用:deep()选择器修改element-plus内部样式 */
+.auto-size-card :deep(.el-card__body) {
+  flex: none; /* 取消flex填充 */
+  height: auto !important; /* 确保高度由内容决定 */
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0; /* 防止头部被压缩 */
+}
+
+.delete-btn {
+  padding: 0;
+  margin: 0;
+}
+
+.card-content {
+  height: auto; /* 内容高度自适应 */
+  overflow: hidden; /* 防止内容溢出 */
+}
+
+.card-content p {
+  margin: 8px 0;
+  word-break: break-word;
 }
 </style>
