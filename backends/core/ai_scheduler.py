@@ -8,6 +8,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import List, Dict
 
+from .deepseekv2 import parse_schedule
 from .scheduler import Scheduler
 from .database.schedule_manager import ScheduleManager
 
@@ -23,3 +24,15 @@ class AIScheduler(Scheduler):
         self.settings = app.config.get('AI_SCHEDULER_SETTINGS', {})
 
     # Add AI-specific methods here
+    def create_json(self, context, existing_schedules=None):
+        """
+        调用parse_schedule生成AI日程，并创建到数据库
+        Args:
+            context: 用户输入的任务内容
+            existing_schedules: 已有日程（可选）
+        Returns:
+            List[int]: 新建日程的ID列表
+        """
+        target_json = parse_schedule(context, existing_schedules=existing_schedules)
+        # create_schedule 期望参数为 List[Dict]
+        return self.create_schedule([target_json])

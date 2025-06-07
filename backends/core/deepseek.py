@@ -2,73 +2,125 @@ from openai import OpenAI
 from datetime import datetime, timedelta
 import json
 from textwrap import dedent
-from ..config.config import Config
+from config.config import Config
 
 cfg = Config()
 
 client = OpenAI(api_key=cfg.DEEPSEEK_API_KEY, base_url="https://api.deepseek.com")
 
-def parse_schedule(content, existing_schedules=None):
-    # 系统提示词需要明确结构化输出要求
-
-    today = datetime.now().strftime("%Y-%m-%d")  # 获取当前日期
-
+def init_ai(ai_type="schedule_parser", existing_schedules=None):
+    """
+    初始化AI角色设定和能力
+    :param ai_type: AI类型，目前支持'schedule_parser'(日程解析)和其他类型
+    :param existing_schedules: 已有日程列表，用于冲突检查
+    :return: 包含系统提示词的字典
+    """
+    today = datetime.now().strftime("%Y-%m-%d")
+    
+    # 基础角色设定
+    base_prompt = {
+        "role": "你是一个多功能AI助手，能够处理多种大学生学习和生活相关任务",
+        "capabilities": [
+            "自然语言理解和生成",
+            "时间日期解析和计算",
+            "结构化数据生成",
+            "任务优先级评估"
+        ],
+        "knowledge": {
+            "academic": "了解大学生常见课程、作业和考试安排",
+            "time_management": "熟悉时间管理和日程规划原则",
+            "reminder_rules": "掌握提醒事项设置的最佳实践"
+        }
+    }
+    
+    # 已有日程文本
     existing_schedules_text = ""
     if existing_schedules:
         existing_schedules_text = dedent(f"""
-            ## 已有日程\n当前已有日程如下，请合理安排时间，尽量避免与下列任务冲突：
+            ## 已有日程\n当前已有日程如下：
             ```json\n{json.dumps(existing_schedules, indent=2, ensure_ascii=False)}\n```
         """).strip()
 
-    system_prompt = dedent(f"""
-        # 角色设定
-        你是一个专业的大学生日程生成助手，擅长从学生输入的任务中提取关键信息（如截止时间、任务内容），并智能推断合理的日程标题、主要内容、预计耗时、最晚开始时间。
+    # 根据不同类型返回特定的系统提示词
+    if ai_type == "schedule_parser":
+        return {
+            "system_prompt": dedent(f"""
+                # 角色设定
+                {base_prompt['role']}，特别擅长日程和提醒事项的解析与生成。
 
-        ## 能力
-        - 信息提取：精准识别截止时间、任务描述等关键字段
-        - 智能推断：根据任务类型生成简洁明了的日程标题（如"XX课程理论作业"、"XX课程实验报告"）
-        - 时间估算：结合常见作业、实验难度推算合理完成时间
-        - 日程简化：提取最重要的任务信息，不删除任何关键信息
-        - 结构化输出：统一以标准JSON格式输出日程信息
-        - 冲突检查：检查新生成的日程的持续周期内是否与已有日程的持续时间重叠，持续时间定义为推荐的最晚开始时间到截止时间之间的时间段（如"2025-05-08"到"2025-05-10"），
-            如果有重叠，则给出冲突提示（如规划时间的建议，"期间有其他日程，如xx日程（日程时间）等，建议合理规划时间"）
+                ## 专项能力
+                1. 类型判断：准确区分日程(Schedule)和提醒事项(Reminder)
+                2. 信息提取：从文本中提取关键信息（时间、内容、优先级等）
+                3. 冲突检测：检查新事项与已有日程的时间冲突
+                4. 时间推算：根据模糊时间描述计算具体时间点
 
-        ## 知识储备
-        - 理论课程作业通常耗时：2-6小时
-        - 实验及实验报告通常耗时：4-10小时
-        - 常见自然语言时间解析（如“下周三”“三天后”）
-        - 大学生常见学术时间管理经验
+                ## 日程解析专项知识
+                - 理论作业通常耗时2-6小时
+                - 实验报告通常耗时4-10小时
+                - 课程复习通常需要3-8小时/科目
+                - 能解析自然语言时间描述（如"下周三""三天后"）
 
-        ## 处理规则
-        1. 若输入中包含明确时间（如"5月10日前"）则直接采用；
-        2. 若输入为模糊时间（如"下周三"），根据当前日期 {today} 自动推算具体截止时间；
-        3. 生成标题格式：[动作] + [对象]，如"完成微积分理论作业"；
-        4. 耗时估算标准：
-        - 理论作业（2-6小时）
-        - 实验操作（3-6小时）
-        - 实验报告撰写（2-4小时）
-        5. 计算合理的最晚开始时间，预留充足完成时间；
-        6. 输出要求为**标准合法JSON格式**，包括以下字段：
-        ```json
-        {{
-        "title": "生成的日程标题",
-        "content": "用户输入的完整任务内容（必要时稍作整理）",
-        "deadline": ["YYYY-MM-DD", "HH:MM"],
-        "estimated_duration": "预计耗时（小时数）",
-        "reminder_start": ["YYYY-MM-DD", "HH:MM"],
-        "conflict_check": "冲突提示（如有冲突）"
-        }}
-        ```
-        ## 已有日程
-        {existing_schedules_text}
-    """).strip()
+                ## 输出格式要求
+                请根据输入内容判断是日程还是提醒事项，并返回对应JSON格式：
 
-    # print(f"Sytem Prompt:\n{system_prompt}")
+                ### 日程(Schedule)格式：
+                {{
+                    "type": "schedule",
+                    "content": {{
+                        "title": "日程标题",
+                        "content": "详细内容",
+                        "begin_time": ["YYYY-MM-DD", "HH:MM"],
+                        "end_time": ["YYYY-MM-DD", "HH:MM"],
+                        "estimated_duration": 预计小时数,
+                        "conflict_check": "冲突提示(如有)"
+                    }}
+                }}
 
+                ### 提醒事项(Reminder)格式：
+                {{
+                    "type": "reminder",
+                    "content": {{
+                        "title": "提醒标题",
+                        "content": "提醒内容",
+                        "end_time": ["YYYY-MM-DD", "HH:MM"],
+                        "conflict_check": "冲突提示(如有)"
+                    }}
+                }}
+
+                ## 已有日程
+                {existing_schedules_text}
+
+                ## 当前日期
+                今天是{today}
+            """).strip()
+        }
+    else:
+        # 其他AI类型的初始化可以在这里扩展
+        return {
+            "system_prompt": dedent(f"""
+                # 通用AI助手
+                {base_prompt['role']}，可以处理各种学习和生活相关问题。
+
+                ## 通用能力
+                - 回答问题
+                - 提供建议
+                - 简单计算
+                - 信息查询
+
+                ## 当前日期
+                今天是{today}
+            """).strip()
+        }
+
+def parse_schedule(content, existing_schedules=None):
+    """解析日程/提醒事项专用函数"""
+    # 初始化AI
+    ai_config = init_ai("schedule_parser", existing_schedules)
+    
     response = client.chat.completions.create(
         model="deepseek-chat",
         messages=[
-            {"role": "system", "content": system_prompt},
+            {"role": "system", "content": ai_config["system_prompt"]},
             {"role": "user", "content": content}
         ],
         response_format={"type": "json_object"},
@@ -77,30 +129,147 @@ def parse_schedule(content, existing_schedules=None):
 
     if response.choices[0].message.content is None:
         raise ValueError("Response content is None and cannot be parsed as JSON.")
-    result = json.loads(response.choices[0].message.content)
-    # deadline = datetime.strptime(result["deadline"], "%Y-%m-%d")
-    # result["daily_reminder_start"] = (deadline - timedelta(days=3)).strftime("%Y-%m-%d")  # 截止前3天开始每日提醒
-
-    schedule = {
-        "id": None,
-        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "content": result
-    }
     
-    return result
+    ai_response = json.loads(response.choices[0].message.content)
+    item_type = ai_response.get("type", "schedule")  # 默认为schedule
 
+    # 定义默认模板
+    DEFAULT_TEMPLATES = {
+        "schedule": {
+            "id": None,
+            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "type": "schedule",
+            "AI_readable": True,
+            "content": {
+                "title": "",
+                "content": "",
+                "whole_day": False,
+                "begin_time": ["", "08:00"],
+                "end_time": ["", "23:59"],
+                "location": "",
+                "remind_start": ["", "08:00"],
+                "remind_before": 60,
+                "estimated_duration": 0,
+                "conflict_check": "",
+                "tag": "学习",
+                "additional_info": [],
+                "archive": False,
+                "archive_time": ""
+            }
+        },
+        "reminder": {
+            "id": None,
+            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "type": "reminder",
+            "AI_readable": True,
+            "content": {
+                "title": "",
+                "content": "",
+                "end_time": ["", "23:59"],
+                "remind_start": ["", "08:00"],
+                "remind_before": 60,
+                "conflict_check": "",
+                "tag": "提醒",
+                "additional_info": [],
+                "archive": False,
+                "archive_time": ""
+            }
+        }
+    }
+
+    # 选择对应类型的模板
+    template = DEFAULT_TEMPLATES[item_type].copy()
+    
+    # 递归更新嵌套字典
+    def update_dict(original, updates):
+        for key, value in updates.items():
+            if isinstance(value, dict) and key in original:
+                update_dict(original[key], value)
+            else:
+                original[key] = value
+    
+    update_dict(template, ai_response)
+    
+    return template
+
+def ask_ai(question):
+    """通用问答函数"""
+    ai_config = init_ai("general")
+    
+    response = client.chat.completions.create(
+        model="deepseek-chat",
+        messages=[
+            {"role": "system", "content": ai_config["system_prompt"]},
+            {"role": "user", "content": question}
+        ],
+        stream=False
+    )
+    
+    return response.choices[0].message.content
+
+def determine_ai_type(user_input):
+    """
+    让AI自动判断输入内容的类型，返回对应的处理类型
+    :param user_input: 用户输入文本
+    :return: ai_type (schedule_parser|general)
+    """
+    # 系统提示词让AI自己判断类型
+    system_prompt = dedent("""
+        请根据用户输入内容判断最适合的处理类型：
+        1. 如果包含任务、作业、会议等有时间要求的活动 → schedule_parser
+        2. 如果只是简单提醒(如"记得买书") → schedule_parser
+        3. 如果是普通问题或聊天 → general
+        
+        只需返回JSON格式：
+        {"ai_type": "schedule_parser|general"}
+    """)
+    
+    response = client.chat.completions.create(
+        model="deepseek-chat",
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_input}
+        ],
+        response_format={"type": "json_object"},
+        stream=False
+    )
+    
+    result = json.loads(response.choices[0].message.content)
+    return result["ai_type"]
+
+# 测试数据
 existing_schedules = [
     {
-        "title": "完成概率论理论作业",
-        "deadline": "2025-05-10",
-        "estimated_duration": 4,
-        "recommended_slots": ["2025-05-08", "2025-05-09"]
+        "id": "schedule_001",
+        "timestamp": "2025-05-01 10:00:00",
+        "type": "schedule",
+        "AI_readable": True,
+        "content": {
+            "title": "完成概率论理论作业",
+            "content": "教材第50-52页习题",
+            "whole_day": False,
+            "begin_time": ["2025-05-08", "14:00"],
+            "end_time": ["2025-05-08", "18:00"],
+            "remind_start": ["2025-05-07", "08:00"],
+            "remind_before": 60,
+            "estimated_duration": 4,
+            "tag": "学习"
+        }
     },
     {
-        "title": "撰写线性代数实验报告",
-        "deadline": "2025-05-12",
-        "estimated_duration": 6,
-        "recommended_slots": ["2025-05-09", "2025-05-10"]
+        "id": "schedule_002",
+        "timestamp": "2025-05-02 15:30:00",
+        "type": "schedule",
+        "AI_readable": True,
+        "content": {
+            "title": "撰写线性代数实验报告",
+            "whole_day": False,
+            "begin_time": ["2025-05-09", "19:00"],
+            "end_time": ["2025-05-09", "23:00"],
+            "remind_start": ["2025-05-08", "08:00"],
+            "estimated_duration": 4,
+            "tag": "学习"
+        }
     }
 ]
 
