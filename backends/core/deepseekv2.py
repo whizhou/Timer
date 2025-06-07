@@ -41,7 +41,9 @@ def parse_schedule(content, existing_schedules=None):
 
         ## 处理规则
         0. 首先判断用户输入内容应生成哪种类型（schedule 或 reminder），再严格按照对应的JSON格式生成输出。
-            判断规则为是否有具体的起止时间。
+            判断规则为有具体的起止时间或明确说明是日程是schedule，否则为reminder。
+            - 例如：“提醒我明天交作业”应为reminder；
+            - “5月10日14:00-16:00参加会议”应为schedule。
         1. 若输入中包含明确时间（如"5月10日前"）则直接采用；
         2. 若输入为模糊时间（如"下周三"），根据当前日期 {today} 自动推算具体截止时间；
         3. 生成标题格式：[动作] + [对象]，如"完成微积分理论作业"；
@@ -91,6 +93,7 @@ def parse_schedule(content, existing_schedules=None):
             "content": "新内容"
         }}
         3. 其他字段将使用默认值
+        4. 如果用户输入没有明确的起止时间，仅为提醒事项，请务必输出"type": "reminder"
     """).strip()
 
     response = client.chat.completions.create(

@@ -2,7 +2,7 @@ from openai import OpenAI
 from datetime import datetime, timedelta
 import json
 from textwrap import dedent
-from ..config.config import Config
+from config.config import Config
 
 cfg = Config()
 
