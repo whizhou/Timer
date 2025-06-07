@@ -2,7 +2,7 @@
   <el-card class="box-card">
   <div slot="header" class="clearfix">
     <span><h3>{{cardData.content.title}}</h3></span>
-    <el-button style="float: right; padding: 3px 0" type="text" @click="del(cardData.id)">删除</el-button>
+    <el-button style="float: right; padding: 3px 0" type="text" @click="deleteCards(cardData.id)">删除</el-button>
   </div>
   <div class="text item">
     <b>地点：</b>{{ cardData.content.location }}
@@ -21,6 +21,9 @@
 </template>
 
 <script>
+
+import { DeleteSchedule } from './DataManager';
+
 export default {
   name: 'Card',
   props: {
@@ -30,8 +33,8 @@ export default {
     }
   },
   methods : {
-    del (id) {
-      this.$emit("delcards",id)
+    deleteCards (id) {
+      DeleteSchedule(id)
     }
   }
 }
