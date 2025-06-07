@@ -2,7 +2,7 @@
     <div class="LeftBar" style="height: 100%;">
       <el-row>
         <el-col>
-          <h1>Timer</h1>
+          <h1>Timer<el-button style="float: right;" @click="Sync()"><b>测试：同步</b></el-button></h1> 
           <el-menu class="MainMenu" router>
             <el-menu-item index="/">
               <el-icon><document /></el-icon>
@@ -22,7 +22,8 @@
     </div>
 </template>
 
-<script lang="ts" setup>
+<script lang="ts">
+
 import {
   Calendar,
   Document,
@@ -30,6 +31,20 @@ import {
   Location,
   Setting,
 } from '@element-plus/icons-vue'
+
+import { SyncFromServer } from '../utils/DataManager';
+
+export default {
+  components : {
+    SyncFromServer,
+  },
+  methods : {
+    Sync () {
+      SyncFromServer();
+    }
+  }
+}
+
 </script>
 
 <style lang="less" scoped>

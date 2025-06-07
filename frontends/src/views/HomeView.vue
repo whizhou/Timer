@@ -5,7 +5,7 @@
     <el-container>
       <el-aside width="200px"> <leftbar></leftbar> </el-aside>
       <el-container style="background-color:#EEEEEE">
-        <Cards v-for="item in UserSchedules" :key="item.id" :cardData="item" />
+        <Cards :cards="globalStore.UserSchedules" />
         <div class="right-bottom"><create-schedule></create-schedule></div>
       </el-container>
     </el-container>
@@ -18,18 +18,28 @@
 
 import Cards from "../components/Cards.vue"
 import CreateSchedule from "../components/CreateSchedule.vue"
-import { UserSchedules } from "../components/DataManager"
+import globalStore from "../utils/GlobalStore.js"
+// import { GetDataFromServer } from "../utils/DataManager";
+// import { serverURL } from "../utils/DataManager";
 
 export default {
   data () {
     return {
-      UserSchedules
+      globalStore,
+      // serverURL,
     }
   },
   components : {
     Cards,
-    CreateSchedule
-  }
+    CreateSchedule,
+    // GetDataFromServer,
+  },
+  // mounted () {
+  //   let init = GetDataFromServer(serverURL+"schedule/");
+  //   if (init==undefined)
+  //     console.log("server error");
+  //   else globalStore.UserSchedules=init;
+  // }
 }
 
 </script>

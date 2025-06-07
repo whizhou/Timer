@@ -1,29 +1,33 @@
-
 <template>
-  <div id="container" style="width:100%;height: 100%;">
 
-    <div id="menu" style="height:100%;width:10%;float:left;">
-      <leftbar></leftbar>  
-    </div>
-    
-    <div id="content" style="background-color:#EEEEEE;height:80%;width:90%;float:right;">
-      <ChattingBox :messages="messages"></ChattingBox>
-    </div>
+  <div class = "calendar">
+    <el-container>
+      <el-aside width="200px"> <leftbar></leftbar> </el-aside>
+      <el-container style="background-color:#EEEEEE">
+        <!-- container内为AI对话的实现区域 -->
 
-    <div id="input" style="background-color:#EEEEEE;height:20%;width:90%;float:right;">
-        <el-input
-          v-model="userinput"
-          style="width: 100%;height: 60%;"
-          :autosize="{ minRows: 4, maxRows: 4}"
-          type="textarea"
-          placeholder="请输入... ..."
-        />
-        <el-button type="success" @click="sendmessage">发送</el-button>
-        <el-button type="danger" @click="cleanmessage">！清空消息！</el-button>
-    </div>
+        <!-- 示例：用ChattingBox实现有点样子的对话界面,可以换别的方式实现 -->
+        <div id="content" style="background-color:#EEEEEE;height:80%;width:100%;float:right;">
+          <ChattingBox :messages="messages"></ChattingBox>
+        </div>
 
-  
+        <div id="input" style="background-color:#EEEEEE;height:20%;width:100%;float:right;">
+            <el-input
+              v-model="userinput"
+              style="width: 100%;height: 60%;"
+              :autosize="{ minRows: 4, maxRows: 4}"
+              type="textarea"
+              placeholder="请输入... ..."
+            />
+            <el-button type="success" @click="sendmessage">发送</el-button>
+            <el-button type="danger" @click="cleanmessage">！清空消息！</el-button>
+        </div>
+        <!--  -->
+
+      </el-container>
+    </el-container>
   </div>
+
 </template>
 
 <script>
@@ -59,10 +63,3 @@
   }
 
 </script>
-
-<style>
-html,
-body{
-  height: 100%;
-}
-</style>
