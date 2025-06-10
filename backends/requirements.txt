@@ -5,5 +5,5 @@ pathlib
 requests
 pytest
 Flask-Session
-flask-cors
+flask-cors 
 cachelib 

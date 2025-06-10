@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import List, Dict
 
-from .database.schedule_manager import ScheduleManager
+from core.database.schedule_manager import ScheduleManager
 
 
 class Scheduler:
@@ -112,3 +112,6 @@ class Scheduler:
             int: The total number of schedules.
         """
         return self.manager.get_schedule_quantity()
+
+# 创建全局的Scheduler实例
+scheduler = Scheduler()
