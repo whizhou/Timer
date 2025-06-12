@@ -28,7 +28,7 @@ class AIScheduler(Scheduler):
         self.prompt_generator = PromptGenerator()
         self.ai_schedule_manager = AIScheduleManager()
         self.intent_classifier = IntentClassifier()
-        self.scheduler = Scheduler(app)  # 修正：传入app
+        self.scheduler = Scheduler(app)
         
         # 设置意图处理器
         self._setup_intent_handlers()
@@ -68,7 +68,7 @@ class AIScheduler(Scheduler):
     def _handle_create_intent(self, user_input: str) -> Dict:
         """处理创建日程/提醒的请求"""
         # 生成创建提示词并获取响应
-        all_schedules = self.scheduler.get_schedules() # 获取当前日程库的所有日程
+        all_schedules = self.scheduler.get_schedules()
         prompt = self.prompt_generator._parse_creation(all_schedules)
         creation_result = self.ai_schedule_manager._handle_creation_response(prompt, user_input)
         
@@ -84,7 +84,10 @@ class AIScheduler(Scheduler):
         schedule_type = creation_result.get("type", "")
         content = creation_result.get("content", {})
         title = content.get("title", {})
-        
+
+        created_ids = self.scheduler.create_schedule([creation_result])
+        if created_ids and isinstance(created_ids[0], int):
+            creation_result['id'] = created_ids[0]
         return {
             "status": "success",
             "action": "create",
@@ -113,6 +116,8 @@ class AIScheduler(Scheduler):
         # 获取日程ID（假设从original或modified中获取）
         schedule_id = original_data.get("id") or modified_data.get("id")
         
+        self.scheduler.update_schedule(schedule_id, modified_data)
+
         return {
             "status": "success",
             "action": "modify",
@@ -139,6 +144,8 @@ class AIScheduler(Scheduler):
         # 获取删除的日程信息
         schedule_id = deletion_result.get("id")
         schedule_title = deletion_result.get("title", "")
+
+        self.scheduler.delete_schedule(schedule_id)
         
         return {
             "status": "success",
