@@ -22,7 +22,6 @@ from core.scheduler import Scheduler  # 新增导入
 # 测试数据
 existing_schedules = [
     {
-        "id": 1, 
         "timestamp": "2025-05-01 10:00:00",
         "type": "schedule",
         "AI_readable": True,
@@ -38,8 +37,7 @@ existing_schedules = [
             "tag": "学习"
         }
     },
-    {
-        "id": 2, 
+    { 
         "timestamp": "2025-05-02 15:30:00",
         "type": "schedule",
         "AI_readable": True,
