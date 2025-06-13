@@ -29,12 +29,14 @@
                 >
               </el-tooltip>
             </div>
-            <el-tooltip content="帮助" placement="bottom">
-              <el-button type="text" icon="el-icon-question" circle></el-button>
-            </el-tooltip>
-            <el-tooltip content="设置" placement="bottom">
-              <el-button type="text" icon="el-icon-setting" circle></el-button>
-            </el-tooltip>
+            <el-button
+              type="text"
+              icon="el-icon-delete"
+              circle
+              @click="cleanmessage"
+            ></el-button>
+            <el-button type="text" icon="el-icon-question" circle></el-button>
+            <el-button type="text" icon="el-icon-setting" circle></el-button>
           </div>
         </div>
 
@@ -65,19 +67,33 @@
                 @keyup.enter.ctrl="sendmessage"
               />
               <div class="input-actions">
-                <el-tooltip content="清空对话" placement="top">
-                  <el-button
-                    type="text"
-                    icon="el-icon-delete"
-                    @click="cleanmessage"
-                    class="action-btn"
-                  ></el-button>
-                </el-tooltip>
+                <el-upload
+                  class="upload-button"
+                  action="#"
+                  :show-file-list="false"
+                  :before-upload="handleImageUpload"
+                >
+                  <el-button type="primary" size="small" plain class="ocr-btn"
+                    >图片转文字</el-button
+                  >
+                </el-upload>
                 <el-button
                   type="primary"
-                  @click="sendmessage"
-                  icon="el-icon-s-promotion"
-                  class="send-btn"
+                  size="small"
+                  plain
+                  class="voice-btn"
+                  @click="toggleVoiceRecording"
+                  :class="{ recording: isRecording }"
+                >
+                  <i
+                    :class="
+                      isRecording ? 'el-icon-microphone' : 'el-icon-microphone'
+                    "
+                    class="mic-icon"
+                  ></i>
+                  {{ isRecording ? "结束录音" : "语音转文字" }}
+                </el-button>
+                <el-button type="primary" @click="sendmessage" class="send-btn"
                   >发送</el-button
                 >
               </div>
@@ -87,6 +103,46 @@
         </div>
       </el-container>
     </el-container>
+
+    <!-- 图片识别加载弹窗 -->
+    <el-dialog
+      title="图片识别中"
+      :visible.sync="ocrLoading"
+      width="30%"
+      :close-on-click-modal="false"
+      :close-on-press-escape="false"
+      :show-close="false"
+    >
+      <div class="ocr-loading-content">
+        <el-progress type="circle" :percentage="ocrProgress"></el-progress>
+        <p>正在识别图片中的文字，请稍候...</p>
+      </div>
+    </el-dialog>
+
+    <!-- 语音识别状态弹窗 -->
+    <el-dialog
+      title="语音识别中"
+      :visible.sync="voiceRecording"
+      width="30%"
+      :close-on-click-modal="false"
+      :close-on-press-escape="false"
+      :show-close="false"
+    >
+      <div class="voice-recording-content">
+        <div class="voice-wave">
+          <div
+            v-for="i in 5"
+            :key="i"
+            class="voice-bar"
+            :style="{ animationDelay: `${i * 0.1}s` }"
+          ></div>
+        </div>
+        <p>正在录音，请说话... 录音时长: {{ recordingTime }}秒</p>
+        <el-button type="danger" @click="stopVoiceRecording"
+          >结束录音</el-button
+        >
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -94,6 +150,7 @@
 import ChattingBox from "../components/ChattingBox.vue";
 import { cloneDeep } from "lodash";
 import axios from "axios";
+import Tesseract from "tesseract.js";
 
 export default {
   components: {
@@ -109,6 +166,13 @@ export default {
       userinput: "",
       sessionId: null, // 存储会话ID
       schedules: [], // 存储用户日程
+      ocrLoading: false, // 图片识别加载状态
+      ocrProgress: 0, // 图片识别进度
+      isRecording: false, // 是否正在录音
+      voiceRecording: false, // 语音录音弹窗状态
+      recordingTime: 0, // 录音时长
+      recordingTimer: null, // 录音计时器
+      recognition: null, // 语音识别对象
     };
   },
   mounted() {
@@ -131,12 +195,214 @@ export default {
 
     // 获取用户日程
     this.fetchSchedules();
+
+    // 初始化语音识别
+    this.initSpeechRecognition();
   },
   updated() {
     // 每次更新后滚动到底部
     this.scrollToBottom();
   },
   methods: {
+    // 初始化语音识别
+    initSpeechRecognition() {
+      // 检查浏览器是否支持语音识别
+      if (
+        "webkitSpeechRecognition" in window ||
+        "SpeechRecognition" in window
+      ) {
+        const SpeechRecognition =
+          window.SpeechRecognition || window.webkitSpeechRecognition;
+        this.recognition = new SpeechRecognition();
+
+        // 设置语音识别参数
+        this.recognition.continuous = true; // 持续识别
+        this.recognition.interimResults = true; // 实时结果
+        this.recognition.lang = "zh-CN"; // 设置中文识别
+
+        // 处理识别结果
+        this.recognition.onresult = (event) => {
+          let finalTranscript = "";
+          let interimTranscript = "";
+
+          // 获取所有识别结果
+          for (let i = event.resultIndex; i < event.results.length; ++i) {
+            if (event.results[i].isFinal) {
+              finalTranscript += event.results[i][0].transcript;
+            } else {
+              interimTranscript += event.results[i][0].transcript;
+            }
+          }
+
+          // 更新输入框内容
+          if (finalTranscript !== "") {
+            if (this.userinput && this.userinput.trim() !== "") {
+              this.userinput += " " + finalTranscript;
+            } else {
+              this.userinput = finalTranscript;
+            }
+          }
+        };
+
+        // 处理错误
+        this.recognition.onerror = (event) => {
+          console.error("语音识别错误:", event.error);
+          this.stopVoiceRecording();
+          this.$message.error(`语音识别错误: ${event.error}`);
+        };
+
+        // 处理结束
+        this.recognition.onend = () => {
+          // 如果仍处于录音状态，则继续录音（防止自动结束）
+          if (this.isRecording) {
+            this.recognition.start();
+          } else {
+            this.stopVoiceRecording();
+          }
+        };
+      } else {
+        console.warn("浏览器不支持语音识别");
+      }
+    },
+
+    // 切换语音录音状态
+    toggleVoiceRecording() {
+      if (this.isRecording) {
+        this.stopVoiceRecording();
+      } else {
+        this.startVoiceRecording();
+      }
+    },
+
+    // 开始语音录音
+    startVoiceRecording() {
+      // 检查浏览器是否支持语音识别
+      if (!this.recognition) {
+        this.$message.warning("您的浏览器不支持语音识别功能");
+        return;
+      }
+
+      try {
+        // 开始录音
+        this.recognition.start();
+        this.isRecording = true;
+        this.voiceRecording = true;
+        this.recordingTime = 0;
+
+        // 开始计时
+        this.recordingTimer = setInterval(() => {
+          this.recordingTime++;
+
+          // 自动停止，如果超过1分钟
+          if (this.recordingTime >= 60) {
+            this.stopVoiceRecording();
+            this.$message.info("录音已达到最大时长1分钟，已自动停止");
+          }
+        }, 1000);
+
+        this.$message.success("开始录音，请说话...");
+      } catch (error) {
+        console.error("开始录音失败:", error);
+        this.$message.error("开始录音失败，请重试");
+        this.isRecording = false;
+        this.voiceRecording = false;
+      }
+    },
+
+    // 停止语音录音
+    stopVoiceRecording() {
+      if (this.recognition) {
+        try {
+          this.recognition.stop();
+        } catch (error) {
+          console.error("停止录音错误:", error);
+        }
+      }
+
+      this.isRecording = false;
+      this.voiceRecording = false;
+
+      // 清除计时器
+      if (this.recordingTimer) {
+        clearInterval(this.recordingTimer);
+        this.recordingTimer = null;
+      }
+
+      this.$message.success("录音已结束，内容已添加到输入框");
+    },
+
+    // 处理图片上传和识别（纯前端实现）
+    async handleImageUpload(file) {
+      // 检查文件类型
+      if (!file.type.includes("image/")) {
+        this.$message.error("请上传图片文件");
+        return false;
+      }
+
+      this.ocrLoading = true;
+      this.ocrProgress = 0;
+
+      try {
+        // 读取文件为URL
+        const fileUrl = URL.createObjectURL(file);
+
+        // 使用Tesseract.js识别图片文字
+        const result = await Tesseract.recognize(
+          fileUrl,
+          "chi_sim", // 使用中文简体识别模型
+          {
+            logger: (progress) => {
+              // 根据进度状态更新进度条
+              if (progress.status === "recognizing text") {
+                this.ocrProgress = Math.round(progress.progress * 100);
+              } else if (progress.status === "loading language traineddata") {
+                this.ocrProgress = 30;
+              } else if (progress.status === "initializing api") {
+                this.ocrProgress = 10;
+              } else {
+                // 其他阶段的进度
+                if (this.ocrProgress < 30) {
+                  this.ocrProgress = 30;
+                }
+              }
+            },
+          }
+        );
+
+        this.ocrProgress = 100;
+
+        // 获取识别文本
+        const recognizedText = result.data.text;
+
+        // 如果成功，将识别的文本添加到输入框
+        if (recognizedText && recognizedText.trim() !== "") {
+          // 如果输入框已有内容，则添加换行符
+          if (this.userinput && this.userinput.trim() !== "") {
+            this.userinput += "\n" + recognizedText;
+          } else {
+            this.userinput = recognizedText;
+          }
+          this.$message.success("图片文字识别成功");
+        } else {
+          this.$message.warning("未能从图片中识别出文字");
+        }
+
+        // 释放URL对象
+        URL.revokeObjectURL(fileUrl);
+
+        setTimeout(() => {
+          this.ocrLoading = false;
+        }, 500);
+      } catch (error) {
+        console.error("图片识别失败:", error);
+        this.$message.error("图片识别失败，请重试");
+        this.ocrLoading = false;
+      }
+
+      // 阻止默认上传行为
+      return false;
+    },
+
     async sendmessage() {
       if (this.userinput == "") return;
       // 处理Ctrl+Enter发送，但不添加额外的换行符
@@ -818,7 +1084,11 @@ export default {
 }
 
 .action-btn:hover {
-  color: #f56c6c;
+  color: #1890ff;
+}
+
+.upload-button {
+  display: inline-block;
 }
 
 .send-btn {
@@ -834,9 +1104,97 @@ export default {
   border-color: #40a9ff;
 }
 
+.voice-btn {
+  transition: all 0.3s;
+}
+
+.voice-btn.recording {
+  background-color: #ff4d4f;
+  border-color: #ff4d4f;
+  color: white;
+}
+
 .chat-tips {
   font-size: 12px;
   color: #999;
   text-align: right;
+}
+
+/* 图片识别加载弹窗样式 */
+.ocr-loading-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.ocr-loading-content p {
+  margin-top: 20px;
+  color: #666;
+  font-size: 14px;
+}
+
+/* 语音识别状态弹窗样式 */
+.voice-recording-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.voice-wave {
+  display: flex;
+  align-items: center;
+  height: 40px;
+  margin-bottom: 20px;
+}
+
+.voice-bar {
+  display: inline-block;
+  width: 5px;
+  height: 20px;
+  background-color: #1890ff;
+  margin: 0 3px;
+  border-radius: 2px;
+  animation: voice-wave 1.2s ease-in-out infinite;
+}
+
+@keyframes voice-wave {
+  0%,
+  100% {
+    height: 10px;
+  }
+  50% {
+    height: 35px;
+  }
+}
+
+.voice-bar:nth-child(1) {
+  animation-delay: 0s;
+}
+.voice-bar:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.voice-bar:nth-child(3) {
+  animation-delay: 0.4s;
+}
+.voice-bar:nth-child(4) {
+  animation-delay: 0.6s;
+}
+.voice-bar:nth-child(5) {
+  animation-delay: 0.8s;
+}
+
+.voice-recording-content p {
+  margin-bottom: 20px;
+  color: #666;
+  font-size: 14px;
+}
+
+.mic-icon {
+  margin-right: 8px;
+  color: inherit;
 }
 </style>
