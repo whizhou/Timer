@@ -93,6 +93,8 @@
 <script>
 import ChattingBox from "../components/ChattingBox.vue";
 import { cloneDeep } from "lodash";
+import axios from "axios";
+
 export default {
   components: {
     ChattingBox,
@@ -106,13 +108,14 @@ export default {
       ],
       userinput: "",
       sessionId: null, // 存储会话ID
+      schedules: [], // 存储用户日程
     };
   },
   mounted() {
     // 初始欢迎消息
     this.messages = [
       {
-        text: "你好！我是Timer智能助手，有什么我可以帮助你的吗？",
+        text: "你好！我是Timer智能助手，有什么我可以帮助你的吗？我可以帮你查看和管理日程。",
         align: "left",
       },
     ];
@@ -125,6 +128,9 @@ export default {
       localStorage.setItem("chat_session_id", this.sessionId);
     }
     console.log("当前会话ID:", this.sessionId);
+
+    // 获取用户日程
+    this.fetchSchedules();
   },
   updated() {
     // 每次更新后滚动到底部
@@ -143,6 +149,12 @@ export default {
       this.messages.push({ text: addms, align: "right" });
       this.scrollToBottom();
 
+      // 检查是否包含日程关键词，如果有则尝试处理日程相关命令
+      if (this.isScheduleRelatedQuery(addms)) {
+        await this.handleScheduleQuery(addms);
+        return;
+      }
+
       try {
         // 显示加载状态
         this.messages.push({
@@ -160,7 +172,7 @@ export default {
         };
 
         // 发送请求到后端API
-        const response = await fetch("http://127.0.0.1:5000/chat/", {
+        const response = await fetch("/chat/", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -201,6 +213,326 @@ export default {
         this.scrollToBottom();
       }
     },
+    // 判断是否是日程相关的查询
+    isScheduleRelatedQuery(query) {
+      const keywords = [
+        "日程",
+        "安排",
+        "计划",
+        "行程",
+        "日历",
+        "提醒",
+        "待办",
+        "schedule",
+        "appointment",
+      ];
+      return keywords.some((keyword) => query.toLowerCase().includes(keyword));
+    },
+
+    // 处理日程相关的查询
+    async handleScheduleQuery(query) {
+      try {
+        // 重新获取最新日程
+        await this.fetchSchedules();
+
+        if (
+          query.includes("查看") ||
+          query.includes("显示") ||
+          query.includes("列出") ||
+          query.includes("我的日程")
+        ) {
+          this.showSchedules();
+        } else if (query.includes("今天") || query.includes("today")) {
+          this.showTodaySchedules();
+        } else if (query.includes("明天") || query.includes("tomorrow")) {
+          this.showTomorrowSchedules();
+        } else if (
+          query.includes("本周") ||
+          query.includes("这周") ||
+          query.includes("week")
+        ) {
+          this.showWeekSchedules();
+        } else {
+          // 如果不是特定命令，则转给AI处理
+          this.messages.push({
+            text: "正在思考中...",
+            align: "left",
+            loading: true,
+          });
+          this.scrollToBottom();
+
+          // 准备请求数据
+          const requestData = {
+            message: query,
+            session_id: this.sessionId,
+          };
+
+          // 发送请求到后端API
+          const response = await fetch("/chat/", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(requestData),
+            credentials: "include",
+          });
+
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+
+          const data = await response.json();
+
+          // 移除加载状态消息
+          this.messages.pop();
+
+          // 添加AI回复
+          this.messages.push({ text: data.response, align: "left" });
+        }
+      } catch (error) {
+        console.error("处理日程查询失败:", error);
+        this.messages.push({
+          text: "抱歉，处理日程查询时出错，请稍后再试。",
+          align: "left",
+        });
+      }
+    },
+
+    // 获取所有日程
+    async fetchSchedules() {
+      try {
+        const response = await axios.get("/schedule/");
+        this.schedules = response.data.schedules;
+      } catch (error) {
+        console.error("获取日程失败:", error);
+        this.messages.push({
+          text: "抱歉，获取日程失败，请检查网络连接。",
+          align: "left",
+        });
+      }
+    },
+
+    // 显示所有日程
+    showSchedules() {
+      if (this.schedules.length === 0) {
+        this.messages.push({
+          text: "您目前没有任何日程安排。",
+          align: "left",
+        });
+        return;
+      }
+
+      let scheduleText = "以下是您的所有日程安排：\n\n";
+      this.schedules.forEach((schedule, index) => {
+        scheduleText += `${index + 1}. ${schedule.title}\n`;
+        scheduleText += `   开始时间: ${this.formatDateTime(
+          schedule.start_time
+        )}\n`;
+        scheduleText += `   结束时间: ${this.formatDateTime(
+          schedule.end_time
+        )}\n`;
+        scheduleText += `   状态: ${this.getStatusText(schedule.status)}\n\n`;
+      });
+
+      this.messages.push({
+        text: scheduleText,
+        align: "left",
+      });
+    },
+
+    // 显示今天的日程
+    showTodaySchedules() {
+      const today = new Date().toISOString().split("T")[0];
+      const todaySchedules = this.schedules.filter((schedule) => {
+        const scheduleStartDate = new Date(schedule.start_time)
+          .toISOString()
+          .split("T")[0];
+        return scheduleStartDate === today;
+      });
+
+      if (todaySchedules.length === 0) {
+        this.messages.push({
+          text: "今天没有日程安排。",
+          align: "left",
+        });
+        return;
+      }
+
+      let scheduleText = "以下是今天的日程安排：\n\n";
+      todaySchedules.forEach((schedule, index) => {
+        scheduleText += `${index + 1}. ${schedule.title}\n`;
+        scheduleText += `   开始时间: ${this.formatDateTime(
+          schedule.start_time
+        )}\n`;
+        scheduleText += `   结束时间: ${this.formatDateTime(
+          schedule.end_time
+        )}\n`;
+        scheduleText += `   状态: ${this.getStatusText(schedule.status)}\n\n`;
+      });
+
+      this.messages.push({
+        text: scheduleText,
+        align: "left",
+      });
+    },
+
+    // 显示明天的日程
+    showTomorrowSchedules() {
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const tomorrowStr = tomorrow.toISOString().split("T")[0];
+
+      const tomorrowSchedules = this.schedules.filter((schedule) => {
+        const scheduleStartDate = new Date(schedule.start_time)
+          .toISOString()
+          .split("T")[0];
+        return scheduleStartDate === tomorrowStr;
+      });
+
+      if (tomorrowSchedules.length === 0) {
+        this.messages.push({
+          text: "明天没有日程安排。",
+          align: "left",
+        });
+        return;
+      }
+
+      let scheduleText = "以下是明天的日程安排：\n\n";
+      tomorrowSchedules.forEach((schedule, index) => {
+        scheduleText += `${index + 1}. ${schedule.title}\n`;
+        scheduleText += `   开始时间: ${this.formatDateTime(
+          schedule.start_time
+        )}\n`;
+        scheduleText += `   结束时间: ${this.formatDateTime(
+          schedule.end_time
+        )}\n`;
+        scheduleText += `   状态: ${this.getStatusText(schedule.status)}\n\n`;
+      });
+
+      this.messages.push({
+        text: scheduleText,
+        align: "left",
+      });
+    },
+
+    // 显示本周的日程
+    showWeekSchedules() {
+      const today = new Date();
+      const firstDay = new Date(today);
+      const lastDay = new Date(today);
+
+      // 设置为本周的第一天（周日）
+      const dayOfWeek = today.getDay();
+      firstDay.setDate(today.getDate() - dayOfWeek);
+
+      // 设置为本周的最后一天（周六）
+      lastDay.setDate(firstDay.getDate() + 6);
+
+      const firstDayStr = firstDay.toISOString().split("T")[0];
+      const lastDayStr = lastDay.toISOString().split("T")[0];
+
+      const weekSchedules = this.schedules.filter((schedule) => {
+        const scheduleDate = new Date(schedule.start_time)
+          .toISOString()
+          .split("T")[0];
+        return scheduleDate >= firstDayStr && scheduleDate <= lastDayStr;
+      });
+
+      if (weekSchedules.length === 0) {
+        this.messages.push({
+          text: "本周没有日程安排。",
+          align: "left",
+        });
+        return;
+      }
+
+      let scheduleText = `以下是本周(${this.formatDate(
+        firstDay
+      )} 至 ${this.formatDate(lastDay)})的日程安排：\n\n`;
+
+      // 按日期分组
+      const groupedSchedules = {};
+      weekSchedules.forEach((schedule) => {
+        const dateStr = new Date(schedule.start_time)
+          .toISOString()
+          .split("T")[0];
+        if (!groupedSchedules[dateStr]) {
+          groupedSchedules[dateStr] = [];
+        }
+        groupedSchedules[dateStr].push(schedule);
+      });
+
+      // 按日期顺序显示
+      Object.keys(groupedSchedules)
+        .sort()
+        .forEach((dateStr) => {
+          const date = new Date(dateStr);
+          scheduleText += `【${this.formatDate(date)} ${this.getWeekdayName(
+            date.getDay()
+          )}】\n`;
+
+          groupedSchedules[dateStr].forEach((schedule, index) => {
+            scheduleText += `${index + 1}. ${schedule.title}\n`;
+            scheduleText += `   开始时间: ${this.formatDateTime(
+              schedule.start_time
+            )}\n`;
+            scheduleText += `   结束时间: ${this.formatDateTime(
+              schedule.end_time
+            )}\n`;
+            scheduleText += `   状态: ${this.getStatusText(
+              schedule.status
+            )}\n\n`;
+          });
+        });
+
+      this.messages.push({
+        text: scheduleText,
+        align: "left",
+      });
+    },
+
+    // 格式化日期
+    formatDate(date) {
+      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
+        2,
+        "0"
+      )}-${String(date.getDate()).padStart(2, "0")}`;
+    },
+
+    // 格式化日期时间
+    formatDateTime(dateTimeStr) {
+      if (!dateTimeStr) return "未设置";
+      const date = new Date(dateTimeStr);
+      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
+        2,
+        "0"
+      )}-${String(date.getDate()).padStart(2, "0")} ${String(
+        date.getHours()
+      ).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
+    },
+
+    // 获取星期几
+    getWeekdayName(day) {
+      const weekdays = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
+      return weekdays[day];
+    },
+
+    // 获取状态文本
+    getStatusText(status) {
+      switch (status) {
+        case "waiting":
+          return "等待中";
+        case "running":
+          return "进行中";
+        case "finished":
+          return "已完成";
+        case "archived":
+          return "已归档";
+        default:
+          return "未知状态";
+      }
+    },
+
     cleanmessage() {
       this.$confirm("确定要清空所有对话记录吗? 这将重置当前会话。", "提示", {
         confirmButtonText: "确定",

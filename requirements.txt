@@ -5,5 +5,3 @@ pathlib
 requests
 pytest
 Flask-Session
-flask-cors
-cachelib 
