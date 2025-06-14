@@ -119,9 +119,9 @@
                 <el-card class="upcoming-card" shadow="hover">
                   <div slot="header" class="upcoming-header">
                     <span>近期日程</span>
-                    <el-button type="text" @click="viewAllTasks"
+                    <!-- <el-button type="text" @click="viewAllTasks"
                       >查看全部</el-button
-                    >
+                    > -->
                   </div>
                   <div class="upcoming-list">
                     <el-timeline>
