@@ -11,7 +11,7 @@
         <leftbar></leftbar>
       </el-aside>
 
-      <el-container class="main-container">   
+      <el-container class="main-container">
         <!-- 聊天头部 -->
         <div class="main-header">
           <div class="header-title">
