@@ -5,8 +5,6 @@
 1. **deepseek_chat.py**：是新建的包含一个管理对话上下文的类。其中的常量值有待商榷，测试者可以尝试更改。
     1. （而且采用的是删除的时候重建整个_dialog_pairs列表的形式，可以考虑将_conversation_history, _dialogs_pairs改为更高效的数据结构：比如队列）
     
-    [deepseek_chat.py](https://www.notion.so/deepseek_chat-py-213337c2123180f48969e485781c27f5?pvs=21)
-    
 2. **ai_scheduler.py**：
     1. 更新了内部逻辑，修正了相关代码错误。采用了在处理函数中将deepseek_api所需message打包好传递的方式。
     2. 同时更新了`user_input`为Dict，但是大部分依然是简单转换为str的`user_input`处理。
