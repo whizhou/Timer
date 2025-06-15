@@ -30,7 +30,11 @@ class DeepSeekChat:
             self._dialog_pairs[-1] = (user_idx, len(self._conversation_history)-1)
 
     def _remove_oldest_complete_pair(self) -> bool:
-        if not self._dialog_pairs or self._dialog_pairs[0][1] is None:
+        if not self._dialog_pairs:
+            print("删除最远的对话对失败")
+            return False
+        
+        if self._dialog_pairs[0][1] is None:
             print("删除最远的对话对失败")
             return False
         

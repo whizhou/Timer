@@ -78,7 +78,7 @@ class PromptGenerator:
             ### 提醒(reminder)模板
             ```json
             {
-                "id": "提醒ID",默认设置为None
+                "id": "提醒ID",默认设置为-1
                 "timestamp": "最后修改时间(YYYY-MM-DD HH:MM:SS)",
                 "type": "reminder",
                 "AI_readable": true/false,默认设置为true
