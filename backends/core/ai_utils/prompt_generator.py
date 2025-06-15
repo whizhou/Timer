@@ -1,14 +1,7 @@
-from openai import OpenAI
 from datetime import datetime, timedelta
 import json
 from textwrap import dedent
-from config.config import Config
 from typing import Dict, Optional, List
-
-cfg = Config()
-
-client = OpenAI(api_key=cfg.DEEPSEEK_API_KEY, base_url="https://api.deepseek.com")
-
 
     
 class PromptGenerator:
@@ -53,7 +46,7 @@ class PromptGenerator:
             ### 日程(schedule)模板
             ```json
             {
-                "id": "日程ID",默认设置为None
+                "id": "日程ID",默认设置为-1
                 "timestamp": "最后修改时间(YYYY-MM-DD HH:MM:SS)",
                 "type": "schedule",
                 "AI_readable": true/false,默认设置为true
@@ -200,35 +193,68 @@ class PromptGenerator:
                 
                 2. 响应必须包含三个部分:
                 - id: 被修改日程的id
-                - original: 原始日程内容
-                - modified: 修改后的内容
+                - original: 原始完整日程内容
+                - modified: 修改后完整的日程内容
                 
                 3. 字段处理规则:
                 - 必须始终包含id字段
                 - 修改时间时，必须自动调整相关提醒时间，重新计算remind_start和remind_before
                     (默认值分别为修改后的end_time那一天的08:00和120分钟)
                 - 只有明确提出修改为日程，并且给出了schedule所需的begin_time才会修改为schedule
+                - 无论什么条件下，返回的两个日程必须是完整的，符合json模版要求的
                 
                 
                 4. 示例响应:
                 ### 修改示例:
-                ```json
-                {
-                    "schedule_id": "schedule_123",
-                    "original": {
+            ```json
+            {
+                "schedule_id": "schedule_123",
+                "original": {
+                    "id": "schedule_123",
+                    "timestamp": "2023-10-14 10:00:00",
+                    "type": "schedule",
+                    "AI_readable": true,
+                    "content": {
                         "title": "小组会议",
+                        "content": "讨论项目进度",
+                        "whole_day": false,
                         "begin_time": ["2023-10-15", "14:00"],
-                        "end_time": ["2023-10-15", "15:00"]
-                    },
-                    "modified": {
-                        "title": "项目进度会议",
-                        "begin_time": ["2023-10-15", "14:30"],
-                        "end_time": ["2023-10-15", "15:30"],
+                        "end_time": ["2023-10-15", "15:00"],
+                        "location": "会议室A",
                         "remind_start": ["2023-10-15", "08:00"],
-                        "remind_before": 120
+                        "remind_before": 120,
+                        "tag": "work",
+                        "repeat": {
+                            "repeat": false
+                        },
+                        "additional_info": [],
+                        "archive": false
+                    }
+                },
+                "modified": {
+                    "id": "schedule_123",
+                    "timestamp": "2023-10-14 11:30:00",  # 更新时间戳
+                    "type": "schedule",
+                    "AI_readable": true,
+                    "content": {
+                        "title": "项目进度会议",  # 修改标题
+                        "content": "讨论项目进度",
+                        "whole_day": false,
+                        "begin_time": ["2023-10-15", "14:30"],  # 修改开始时间
+                        "end_time": ["2023-10-15", "15:30"],   # 修改结束时间
+                        "location": "会议室A",
+                        "remind_start": ["2023-10-15", "08:00"],
+                        "remind_before": 120,
+                        "tag": "work",
+                        "repeat": {
+                            "repeat": false
+                        },
+                        "additional_info": [],
+                        "archive": false
                     }
                 }
-                ```
+            }
+            ```
             """).strip()
             
             return f"{base_prompt}\n\n{modification_rules}"

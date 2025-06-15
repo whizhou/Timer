@@ -6,13 +6,10 @@ from config.config import Config
 from typing import Dict, Union, Optional, List
 from copy import deepcopy
 
-cfg = Config()
-
-client = OpenAI(api_key=cfg.DEEPSEEK_API_KEY, base_url="https://api.deepseek.com")
-
 class AIScheduleManager:
-    """AI语义分析器，负责处理语义分析和系统响应生成"""
+    """AI日程管理器，负责处理用户输入的语义分析并生成对应的日程管理响应"""
     def __init__(self):
+        cfg = Config()
         self.client = OpenAI(api_key=cfg.DEEPSEEK_API_KEY, base_url="https://api.deepseek.com")
         
         # 默认日程模板
@@ -63,12 +60,13 @@ class AIScheduleManager:
             }
         }
 
-    def analyze_semantic_intent(self, user_input: str) -> str:
+    def _analyze_semantic_intent(self, user_input: Dict) -> str:
         """分析用户输入的隐含意图"""
+        user_text = str(user_input)
         prompt = dedent(f"""
             请分析以下用户输入的隐含意图，判断是否属于创建、修改或删除操作：
             
-            用户输入: {user_input}
+            用户输入: {user_text}
             
             请从以下选项中选择最匹配的意图类型：
             1. CREATE - 如果用户意图是创建或添加新内容
@@ -93,19 +91,18 @@ class AIScheduleManager:
             print(f"语义分析出错: {e}")
             return "GENERAL"
 
-    def _handle_creation_response(self, prompt: str, user_input: str) -> Dict:
+    def _handle_creation_response(self, prompt_content: List[Dict[str, str]]) -> Dict:
         """
         处理创建日程/提醒的响应（内部方法）
         逻辑：先识别type，再选择模板，最后递归更新字段
         """
-        full_prompt = f"{prompt}\n\n用户输入: {user_input}"
         
         try:
             response = self.client.chat.completions.create(
                 model="deepseek-chat",
-                messages=[{"role": "user", "content": full_prompt}],
+                messages=prompt_content,
                 temperature=0.3,
-                max_tokens=500,
+                max_tokens=1024,
                 response_format={"type": "json_object"}
             )
             
@@ -129,7 +126,7 @@ class AIScheduleManager:
             print(f"[创建处理错误] {e}")
             return {"error": str(e)}
 
-    def _handle_modification_response(self, prompt: str, user_input: str) -> Dict[str, Dict]:
+    def _handle_modification_response(self, prompt_content: List[Dict[str, str]]) -> Dict[str, Dict]:
         """
         处理修改日程的响应（内部方法）
         返回格式：{
@@ -138,14 +135,13 @@ class AIScheduleManager:
             "type": "schedule/reminder"  # 从响应中提取的类型
         }
         """
-        full_prompt = f"{prompt}\n\n用户输入: {user_input}"
         
         try:
             response = self.client.chat.completions.create(
                 model="deepseek-chat",
-                messages=[{"role": "user", "content": full_prompt}],
+                messages=prompt_content,
                 temperature=0.3,
-                max_tokens=500,
+                max_tokens=1024,
                 response_format={"type": "json_object"}
             )
             
@@ -182,7 +178,7 @@ class AIScheduleManager:
             print(f"[修改处理错误] {str(e)}")
             return {"error": str(e)}
 
-    def _handle_deletion_response(self, prompt: str, user_input: str) -> Dict[str, Union[str, int]]:
+    def _handle_deletion_response(self, prompt_content: List[Dict[str, str]]) -> Dict[str, Union[str, int]]:
         """
         处理删除日程的响应（内部方法）
         返回格式：{
@@ -191,14 +187,13 @@ class AIScheduleManager:
         }
         或错误格式：{"error": "错误信息"}
         """
-        full_prompt = f"{prompt}\n\n用户输入: {user_input}"
         
         try:
             response = self.client.chat.completions.create(
                 model="deepseek-chat",
-                messages=[{"role": "user", "content": full_prompt}],
+                messages=prompt_content,
                 temperature=0.3,
-                max_tokens=500,
+                max_tokens=512,
                 response_format={"type": "json_object"}
             )
             
@@ -228,17 +223,15 @@ class AIScheduleManager:
             print(f"[删除处理错误] {str(e)}")
             return {"error": str(e)}
         
-    def _handle_general_respond(self, prompt, user_input: str) -> str:
+    def _handle_general_respond(self, prompt_content: List[Dict[str, str]]) -> str:
         """生成对通用意图的正常回复"""
-
-        full_prompt = f"{prompt}\n\n用户输入: {user_input}"
         
         try:
             response = self.client.chat.completions.create(
                 model="deepseek-chat",
-                messages=[{"role": "user", "content": full_prompt}],
+                messages=prompt_content,
                 temperature=0.7,
-                max_tokens=200
+                max_tokens=256
             )
             return response.choices[0].message.content.strip()
         except Exception as e:

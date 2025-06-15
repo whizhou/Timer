@@ -1,8 +1,9 @@
 import re
+from typing import Dict
 
 class AIIntentResult:
     """AI意图识别结果数据类"""
-    def __init__(self, intent_type: str, original_text: str):
+    def __init__(self, intent_type: str, original_text: Dict):
         self.intent_type = intent_type
         self.original_text = original_text
 
@@ -13,7 +14,7 @@ class IntentClassifier:
     DELETE_PATTERNS = [r'删除', r'移除', r'去掉', r'delete', r'remove', r'del']
 
     @classmethod
-    def classify_user_intent(cls, user_input: str) -> AIIntentResult:
+    def _classify_user_intent(cls, user_input: Dict[str, str]) -> AIIntentResult:
         """
         分类用户意图（只做识别，不生成响应）
         
@@ -23,6 +24,15 @@ class IntentClassifier:
         返回:
             AIIntentResult对象（总是返回意图结果，不直接生成响应）
         """
+        input_text = user_input.get("word", "").strip()
+        if not input_text:
+            input_text = user_input.get("voice", "").strip()
+        if not input_text:
+            input_text = user_input.get("image", "").strip() 
+        
+        if not input_text:
+            return AIIntentResult(intent_type="GENERAL", original_text="")
+
         normalized_input = user_input.lower()
         
         if cls._matches_pattern(normalized_input, cls.CREATE_PATTERNS):
