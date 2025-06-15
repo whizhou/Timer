@@ -101,6 +101,10 @@ class AIScheduler(Scheduler):
         content = creation_result.get("content", {})
         title = content.get("title", {})
 
+        created_ids = self.create_schedule([creation_result])
+        if created_ids and isinstance(created_ids[0], int):
+            creation_result['id'] = created_ids[0]
+
         self.deepseek_chat._add_assistant_message(str(creation_result))
         
         return {
