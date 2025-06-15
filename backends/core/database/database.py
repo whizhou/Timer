@@ -12,7 +12,7 @@ class Database:
         self._file: dict = {}  # Cache for the file, type: dict
         self.settings: dict = {}  # Settings for the database, type: dict
 
-    def login(self, auth) -> bool:
+    def login(self, auth: int | str) -> bool:
         """Login method to set the authentication.
         Args:
             auth: The authentication object or credentials.

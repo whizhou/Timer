@@ -31,7 +31,7 @@ class ScheduleManager(Database):
             self.login('dev')
         elif app.config.get('MODE') == 'testing':
             self.login('test')
-        elif app.config.get('MODE') == 'default':
+        else:
             self.login('default')
         
         

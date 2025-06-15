@@ -112,3 +112,14 @@ class Scheduler:
             int: The total number of schedules.
         """
         return self.manager.get_schedule_quantity()
+
+    def login(self, user_id: int) -> None:
+        """Log in a user by their ID.
+        Args:
+            user_id (int): The ID of the user to log in.
+        """
+        self.manager.login(user_id)
+
+    def logout(self) -> None:
+        """Log out the current user."""
+        self.manager.logout()
