@@ -426,26 +426,39 @@ const saveSchedule = async () => {
       )}:${String(date.getSeconds()).padStart(2, "0")}`;
     };
 
-    const formData = {
-      ...scheduleForm.value,
-      start_time: formatDate(scheduleForm.value.start_time),
-      end_time: formatDate(scheduleForm.value.end_time),
-      timestamp: formatDate(new Date()),
+    // const formData = {
+    //   ...scheduleForm.value,
+    //   start_time: formatDate(scheduleForm.value.start_time),
+    //   end_time: formatDate(scheduleForm.value.end_time),
+    //   timestamp: formatDate(new Date()),
+    // };
+
+    const formDataUPT = {
+      id : scheduleForm.value.id,
+      type : "schedule",
+      content : {
+        title : scheduleForm.value.title,
+        content : scheduleForm.value.description,
+        begin_time : formatDate(scheduleForm.value.start_time),
+        end_time : formatDate(scheduleForm.value.end_time),
+      }
+      // start_time: formatDate(scheduleForm.value.start_time),
+      // end_time: formatDate(scheduleForm.value.end_time),
     };
 
     let response;
 
     if (isEditing.value) {
       // 编辑现有日程
-      if (!formData.id) {
+      if (!formDataUPT.id) {
         ElMessage.error("日程ID不能为空");
         return;
       }
 
-      console.log("提交编辑日程:", formData); // 添加日志，检查提交的数据
+      console.log("提交编辑日程:", formDataUPT); // 添加日志，检查提交的数据
 
-      response = await axios.put(`/schedule/${formData.id}`, {
-        schedule: formData,
+      response = await axios.put(`/schedule/${formDataUPT.id}`, {
+        schedule: formDataUPT,
       });
 
       if (response.data.success) {
@@ -456,10 +469,10 @@ const saveSchedule = async () => {
       }
     } else {
       // 创建新日程
-      console.log("提交新建日程:", formData); // 添加日志，检查提交的数据
+      console.log("提交新建日程:", formDataUPT); // 添加日志，检查提交的数据
 
       response = await axios.post("/schedule/", {
-        schedules: [formData],
+        schedules: [formDataUPT],
       });
 
       if (response.data.ids && response.data.ids.length > 0) {
