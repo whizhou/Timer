@@ -101,6 +101,10 @@ class AIScheduler(Scheduler):
         content = creation_result.get("content", {})
         title = content.get("title", {})
 
+        created_ids = self.create_schedule([creation_result])
+        if created_ids and isinstance(created_ids[0], int):
+            creation_result['id'] = created_ids[0]
+
         self.deepseek_chat._add_assistant_message(str(creation_result))
         
         return {
@@ -138,7 +142,7 @@ class AIScheduler(Scheduler):
         modified_data = modification_result.get("modified", {})
         
         # 获取日程ID（假设从original或modified中获取）
-        schedule_id = original_data.get("id") or modified_data.get("id")
+        schedule_id = int(original_data.get("id") or modified_data.get("id"))
 
         self.deepseek_chat._add_assistant_message(modification_result)
         
@@ -175,7 +179,7 @@ class AIScheduler(Scheduler):
             }
         
         # 获取删除的日程信息
-        schedule_id = deletion_result.get("id")
+        schedule_id = int(deletion_result.get("id"))
         schedule_title = deletion_result.get("title", "")
 
         self.deepseek_chat._add_assistant_message(deletion_result)

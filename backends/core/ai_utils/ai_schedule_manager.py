@@ -14,7 +14,7 @@ class AIScheduleManager:
         
         # 默认日程模板
         self.DEFAULT_SCHEDULE_TEMPLATE = {
-            "id": None,
+            "id": -1,
             "timestamp": None,  # 将在创建时填充
             "type": "schedule",
             "AI_readable": True,
@@ -42,7 +42,7 @@ class AIScheduleManager:
         
         # 默认提醒模板
         self.DEFAULT_REMINDER_TEMPLATE = {
-            "id": None,
+            "id": -1,
             "timestamp": None,  # 将在创建时填充
             "type": "reminder",
             "AI_readable": True,
@@ -123,7 +123,6 @@ class AIScheduleManager:
             return result
             
         except Exception as e:
-            print(f"[创建处理错误] {e}")
             return {"error": str(e)}
 
     def _handle_modification_response(self, prompt_content: List[Dict[str, str]]) -> Dict[str, Dict]:
@@ -155,27 +154,12 @@ class AIScheduleManager:
             # 提取核心字段
             result = {
                 "original": raw_data.get("original", {}),
-                "modified": raw_data.get("modified", {}),
-                "type": raw_data.get("type", "")
+                "modified": raw_data.get("modified", {})
             }
-            
-            # 确保modified包含必要字段（不修改结构，只补充缺失的必须字段）
-            if result["type"] == "schedule":
-                required_fields = ["title", "begin_time", "end_time"]
-            else:
-                required_fields = ["title", "end_time"]
-            
-            # 仅在modified中补充original的字段（如果modified中缺失）
-            for field in required_fields:
-                if (field not in result["modified"].get("content", {}) and 
-                    field in result["original"].get("content", {})):
-                    result["modified"].setdefault("content", {})[field] = \
-                        result["original"]["content"][field]
             
             return result
             
         except Exception as e:
-            print(f"[修改处理错误] {str(e)}")
             return {"error": str(e)}
 
     def _handle_deletion_response(self, prompt_content: List[Dict[str, str]]) -> Dict[str, Union[str, int]]:
@@ -220,7 +204,6 @@ class AIScheduleManager:
             return result
             
         except Exception as e:
-            print(f"[删除处理错误] {str(e)}")
             return {"error": str(e)}
         
     def _handle_general_respond(self, prompt_content: List[Dict[str, str]]) -> str:
@@ -235,7 +218,6 @@ class AIScheduleManager:
             )
             return response.choices[0].message.content.strip()
         except Exception as e:
-            print(f"生成回复出错: {e}")
             return "我无法处理您的请求，请稍后再试。"
 
     # 辅助方法 --------------------------------------------------
