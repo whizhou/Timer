@@ -7,7 +7,9 @@
     >
       <template #header>
         <div class="card-header">
-          <span><b>{{ card.content.title }}</b></span>
+          <span v-if="card.content!=undefined"><b>{{ card.content.title }}</b></span>
+          <span v-else><b>无题</b></span>
+          <edit-schedule :origin="card"></edit-schedule>
           <el-button 
             class="delete-btn" 
             type="text" 
@@ -28,6 +30,8 @@
 
 <script setup>
 import { DeleteSchedule } from '../utils/DataManager';
+import EditSchedule from './EditSchedule.vue';
+
 import { ref, watch } from 'vue';
 
 const props = defineProps({

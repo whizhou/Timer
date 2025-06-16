@@ -23,6 +23,14 @@ function DeleteSchedule (id) {
     } else console.log("Error When Deleting");
 }
 
+function GetSchedule (id) {
+    let index = 0;
+    while (index<globalStore.UserSchedules.length && globalStore.UserSchedules[index].id!=id) index+=1;
+    if (index<globalStore.UserSchedules.length) {
+        return globalStore.UserSchedules[index];
+    } else return {};
+}
+
 function GetDataFromServer (TargetURL) {
     axios({
         method : 'get',
@@ -62,6 +70,7 @@ function SyncFromServer () {
         url : serverURL+"schedule/",
     }).then((res)=>{
         globalStore.UserSchedules = res.data.schedules;
+        console.log(globalStore.UserSchedules);
     }).catch(()=>{
         console.log("server error");
     })
@@ -70,6 +79,7 @@ function SyncFromServer () {
 export {
     AddSchedule,
     DeleteSchedule,
+    GetSchedule,
     GetDataFromServer,
     PostDataToServer,
     DeleteFromServer,

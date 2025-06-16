@@ -457,7 +457,10 @@ export default {
         this.messages.pop();
 
         // 添加AI回复
-        this.messages.push({ text: data.response, align: "left" });
+        console.log(data);
+        if (data.schedule==undefined)
+          this.messages.push({ text: data.response, align: "left" });
+        else this.messages.push({ text: data.response, align: "left", schedule: data.schedule });
 
         // 保存会话ID
         if (data.session_id) {
