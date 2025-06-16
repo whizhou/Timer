@@ -25,15 +25,15 @@ class IntentClassifier:
             AIIntentResult对象（总是返回意图结果，不直接生成响应）
         """
         input_text = user_input.get("word", "").strip()
-        if not input_text:
-            input_text = user_input.get("voice", "").strip()
-        if not input_text:
-            input_text = user_input.get("image", "").strip() 
+        
+        input_text = user_input.get("voice", "").strip()
+        
+        input_text = user_input.get("image", "").strip() 
         
         if not input_text:
             return AIIntentResult(intent_type="GENERAL", original_text="")
 
-        normalized_input = user_input.lower()
+        normalized_input = input_text.lower()
         
         if cls._matches_pattern(normalized_input, cls.CREATE_PATTERNS):
             return AIIntentResult(intent_type="CREATE", original_text=user_input)
