@@ -34,6 +34,9 @@ class IntentClassifier:
             return AIIntentResult(intent_type="GENERAL", original_text="")
 
         normalized_input = input_text.lower()
+
+        if cls._matches_pattern(normalized_input, cls.DELETE_PATTERNS):
+            return AIIntentResult(intent_type="DELETE", original_text=user_input)
         
         if cls._matches_pattern(normalized_input, cls.CREATE_PATTERNS):
             return AIIntentResult(intent_type="CREATE", original_text=user_input)
@@ -41,8 +44,6 @@ class IntentClassifier:
         if cls._matches_pattern(normalized_input, cls.MODIFY_PATTERNS):
             return AIIntentResult(intent_type="MODIFY", original_text=user_input)
         
-        if cls._matches_pattern(normalized_input, cls.DELETE_PATTERNS):
-            return AIIntentResult(intent_type="DELETE", original_text=user_input)
         
         return AIIntentResult(intent_type="GENERAL", original_text=user_input)
 

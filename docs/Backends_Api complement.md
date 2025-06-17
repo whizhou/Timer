@@ -77,7 +77,7 @@
             return {
                 "status": "error",
                 "action": "create",
-                "message": creation_result["error"] 
+                "error": creation_result["error"] 
                 # 返回一个字符串，说明问题
                 # 有可能是创建类型无法识别，或者其他导致中断的问题
             }
@@ -100,7 +100,7 @@
         if "error" in modification_result:
             return {
                 "status": "error",
-                "message": modification_result["error"]
+                "error": modification_result["error"]
                 # 返回 "响应格式无效"
             }
 ```
@@ -121,7 +121,7 @@
             return {
                 "status": "error",
                 "action": "delete",
-                "message": deletion_result["error"]
+                "error": deletion_result["error"]
                 # 返回可能的str类型的错误信息
             }
 ```
