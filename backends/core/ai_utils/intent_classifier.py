@@ -24,11 +24,11 @@ class IntentClassifier:
         返回:
             AIIntentResult对象（总是返回意图结果，不直接生成响应）
         """
-        input_text = user_input.get("word", "").strip()
-        
-        input_text = user_input.get("voice", "").strip()
-        
-        input_text = user_input.get("image", "").strip() 
+        input_text = (
+            user_input.get("word", "").strip() + " " +
+            user_input.get("voice", "").strip() + " " +
+            user_input.get("image", "").strip()
+        ).strip()  # 最后再 strip() 一次，避免多余空格
         
         if not input_text:
             return AIIntentResult(intent_type="GENERAL", original_text="")
