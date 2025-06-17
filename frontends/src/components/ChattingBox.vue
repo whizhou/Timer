@@ -17,8 +17,32 @@
           <div class="user-avatar">用户</div>
         </div>
         <div class="message-content">
+          <div v-if="message.schedule!=undefined" class="message-bubble">
+            <el-card>
+              <template #header>
+                <div class="card-header">
+                <span v-if="message.schedule.content!=undefined"><b>{{ message.schedule.content.title }}</b></span>
+                <span v-else><b>无题</b></span>
+                  <!-- <edit-schedule :origin="message.schedule"></edit-schedule> -->
+                  <el-button 
+                    class="delete-btn" 
+                    type="text" 
+                    @click="deleteCards(message)"
+                  >删除</el-button>
+                </div>
+              </template>
+              <div class="card-content">
+                <div v-for="(value, key) in message.schedule.content">
+                  <p v-if="key != 'title'">
+                    <b>{{ key }} : </b>{{ value }}
+                  </p>
+                </div>
+              </div>
+            </el-card>
+
+          </div>
           <div class="message-bubble">
-            <span v-if="!message.loading">{{ message.text }}</span>
+            <span v-if="!message.loading"><v-md-preview :text="message.text"></v-md-preview></span>
             <span v-else class="loading-dots">
               {{ message.text }}
               <span class="dot">.</span>
@@ -33,8 +57,15 @@
 </template>
 
 <script>
+
+import { DeleteSchedule } from '../utils/DataManager';
+import EditSchedule from './EditSchedule.vue';
+
 export default {
   name: "ChatBox",
+  components : {
+    EditSchedule
+  },
   props: {
     messages: {
       type: Array,
@@ -48,6 +79,10 @@ export default {
     this.scrollToBottom();
   },
   methods: {
+    deleteCards (message) {
+      DeleteSchedule(message.schedule.id);
+      message.schedule=undefined;
+    },
     scrollToBottom() {
       this.$nextTick(() => {
         const container = this.$refs.chatContainer;
@@ -214,4 +249,22 @@ export default {
     opacity: 0;
   }
 }
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0; /* 防止头部被压缩 */
+}
+
+.delete-btn {
+  padding: 0;
+  margin: 0;
+}
+
+.card-content {
+  height: auto; /* 内容高度自适应 */
+  overflow: hidden; /* 防止内容溢出 */
+}
+
 </style>
