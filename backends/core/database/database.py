@@ -54,7 +54,7 @@ class Database:
             dict: The data read from the database.
         """
         try:
-            with open(self._path, 'r') as file:
+            with open(self._path, 'r', encoding='utf-8') as file:
                 data = json.load(file)
             return data
         except Exception as e:
@@ -70,7 +70,7 @@ class Database:
         """
         try:
             with open(self._path, 'w', encoding='utf-8') as file:
-                json.dump(data, file, indent=2, ensure_ascii=True)
+                json.dump(data, file, indent=2, ensure_ascii=False)
             return True
         except Exception as e:
             print(f"Error writing to file: {e}")
