@@ -93,7 +93,7 @@ class AIScheduler(Scheduler):
             return {
                 "status": "error",
                 "action": "create",
-                "message": creation_result["error"]
+                "error": creation_result["error"]
             }
         
         # 提取创建结果的关键信息
@@ -106,6 +106,8 @@ class AIScheduler(Scheduler):
             creation_result['id'] = created_ids[0]
 
         self.deepseek_chat._add_assistant_message(str(creation_result))
+        self.deepseek_chat._show_history()
+        self.deepseek_chat._check_dialog_pairs()
         
         return {
             "status": "success",
@@ -122,7 +124,7 @@ class AIScheduler(Scheduler):
 
         user_text = str(user_input)
         self.deepseek_chat._add_user_message(user_text)
-
+        
         prompt_content = [
             {"role": "system", "content": f"{system_prompt}"},
             *self.deepseek_chat.conversation_history
@@ -134,7 +136,7 @@ class AIScheduler(Scheduler):
         if "error" in modification_result:
             return {
                 "status": "error",
-                "message": modification_result["error"]
+                "error": modification_result["error"]
             }
 
         # 提取原始和修改后的数据
@@ -143,8 +145,19 @@ class AIScheduler(Scheduler):
         
         # 获取日程ID（假设从original或modified中获取）
         schedule_id = int(original_data.get("id") or modified_data.get("id"))
+        # print(schedule_id)
+        # print("===============modified_data================")
+        # for key, value in modified_data.items():
+        #     print(f"Key: {key}, Value: {value}")
+        # if not isinstance(modified_data, dict) :
+        #     print("is not dict")
+            
+        if self.update_schedule(schedule_id, modified_data):
+            print("update is complete")
 
-        self.deepseek_chat._add_assistant_message(modification_result)
+        self.deepseek_chat._add_assistant_message(str(modification_result))
+        self.deepseek_chat._show_history()
+        self.deepseek_chat._check_dialog_pairs()
         
         return {
             "status": "success",
@@ -175,14 +188,22 @@ class AIScheduler(Scheduler):
             return {
                 "status": "error",
                 "action": "delete",
-                "message": deletion_result["error"]
+                "error": deletion_result["error"]
             }
         
         # 获取删除的日程信息
         schedule_id = int(deletion_result.get("id"))
         schedule_title = deletion_result.get("title", "")
+        
+        print(schedule_id)
+        print(schedule_title)
+        success = self.delete_schedule(schedule_id)
+        if success:
+            print("delete is complete")
 
-        self.deepseek_chat._add_assistant_message(deletion_result)
+        self.deepseek_chat._add_assistant_message(str(deletion_result))
+        self.deepseek_chat._show_history()
+        self.deepseek_chat._check_dialog_pairs()
         
         return {
             "status": "success",

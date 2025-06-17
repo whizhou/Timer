@@ -69,9 +69,9 @@ class AIScheduleManager:
             用户输入: {user_text}
             
             请从以下选项中选择最匹配的意图类型：
-            1. CREATE - 如果用户意图是创建或添加新内容
+            1. CREATE - 如果用户意图是创建或添加新内容，或者说是用户将要在某时间做什么。
             2. MODIFY - 如果用户意图是修改或更新现有内容
-            3. DELETE - 如果用户意图是删除或移除内容
+            3. DELETE - 如果用户意图是删除或移除内容，或者用户不再需要做什么。
             4. GENERAL - 如果不属于以上任何一类
             
             只需返回上述大写关键词，不要包含其他内容。
@@ -193,7 +193,7 @@ class AIScheduleManager:
                 "id": raw_data.get("id"),
                 "title": raw_data.get("title", "")
             }
-            
+                
             # 验证必须字段
             if result["id"] is None or not result["title"]:
                 missing = []
