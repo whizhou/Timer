@@ -32,11 +32,11 @@ class DeepSeekChat:
 
     def _remove_oldest_complete_pair(self) -> bool:
         if not self._dialog_pairs:
-            print("删除最远的对话对失败")
+            # print("删除最远的对话对失败")
             return False
         
         if self._dialog_pairs[0][1] is None:
-            print("删除最远的对话对失败")
+            # print("删除最远的对话对失败")
             return False
         
         start, end = self._dialog_pairs.pop(0)
