@@ -14,8 +14,9 @@ def test_multi_chat(client):
     """Test multi-chat"""
     # Test with multiple messages
     messages = [
-       "你好",
-       "你是谁？"
+       "创建日程：明天下午3点开会，会议内容为讨论项目进展",
+       "修改日程：明天下午3点的会议改为后天上午10点",
+    #    "明天上午的会议取消"
     ]
     
     for message in messages:
@@ -23,8 +24,10 @@ def test_multi_chat(client):
         assert response.status_code == 200
         assert 'messages' in response.json
         assert 'response' in response.json
+        assert 'schedule' in response.json
 
         # Use `pytest -s` to see the print output
-        # print(f"\nResponse: {response.json['response']}")
+        print(f"\nMessage: {message}")
+        print(f"Response: {response.json['response']}")
     
     # print(f"\nAll chat messages: \n{response.json['messages']}")

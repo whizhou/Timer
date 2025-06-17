@@ -189,7 +189,6 @@ class PromptGenerator:
                     2) 匹配具体的时间范围(日期+时间必须完全匹配)
                     3) 匹配内容中的关键词
                 - 如果匹配多个，返回最接近当前时间的一个
-                - 对于模糊匹配(如"会议")，必须要求用户确认
                 
                 2. 响应必须包含三个部分:
                 - id: 被修改日程的id
@@ -206,55 +205,55 @@ class PromptGenerator:
                 
                 4. 示例响应:
                 ### 修改示例:
-            ```json
-            {
-                "schedule_id": "schedule_123",
-                "original": {
-                    "id": "schedule_123",
-                    "timestamp": "2023-10-14 10:00:00",
-                    "type": "schedule",
-                    "AI_readable": true,
-                    "content": {
-                        "title": "小组会议",
-                        "content": "讨论项目进度",
-                        "whole_day": false,
-                        "begin_time": ["2023-10-15", "14:00"],
-                        "end_time": ["2023-10-15", "15:00"],
-                        "location": "会议室A",
-                        "remind_start": ["2023-10-15", "08:00"],
-                        "remind_before": 120,
-                        "tag": "work",
-                        "repeat": {
-                            "repeat": false
-                        },
-                        "additional_info": [],
-                        "archive": false
-                    }
-                },
-                "modified": {
-                    "id": "schedule_123",
-                    "timestamp": "2023-10-14 11:30:00",  # 更新时间戳
-                    "type": "schedule",
-                    "AI_readable": true,
-                    "content": {
-                        "title": "项目进度会议",  # 修改标题
-                        "content": "讨论项目进度",
-                        "whole_day": false,
-                        "begin_time": ["2023-10-15", "14:30"],  # 修改开始时间
-                        "end_time": ["2023-10-15", "15:30"],   # 修改结束时间
-                        "location": "会议室A",
-                        "remind_start": ["2023-10-15", "08:00"],
-                        "remind_before": 120,
-                        "tag": "work",
-                        "repeat": {
-                            "repeat": false
-                        },
-                        "additional_info": [],
-                        "archive": false
+                ```json
+                {
+                    "schedule_id": "schedule_123",
+                    "original": {
+                        "id": "schedule_123",
+                        "timestamp": "2023-10-14 10:00:00",
+                        "type": "schedule",
+                        "AI_readable": true,
+                        "content": {
+                            "title": "小组会议",
+                            "content": "讨论项目进度",
+                            "whole_day": false,
+                            "begin_time": ["2023-10-15", "14:00"],
+                            "end_time": ["2023-10-15", "15:00"],
+                            "location": "会议室A",
+                            "remind_start": ["2023-10-15", "08:00"],
+                            "remind_before": 120,
+                            "tag": "work",
+                            "repeat": {
+                                "repeat": false
+                            },
+                            "additional_info": [],
+                            "archive": false
+                        }
+                    },
+                    "modified": {
+                        "id": "schedule_123",
+                        "timestamp": "2023-10-14 11:30:00",  # 更新时间戳
+                        "type": "schedule",
+                        "AI_readable": true,
+                        "content": {
+                            "title": "项目进度会议",  # 修改标题
+                            "content": "讨论项目进度",
+                            "whole_day": false,
+                            "begin_time": ["2023-10-15", "14:30"],  # 修改开始时间
+                            "end_time": ["2023-10-15", "15:30"],   # 修改结束时间
+                            "location": "会议室A",
+                            "remind_start": ["2023-10-15", "08:00"],
+                            "remind_before": 120,
+                            "tag": "work",
+                            "repeat": {
+                                "repeat": false
+                            },
+                            "additional_info": [],
+                            "archive": false
+                        }
                     }
                 }
-            }
-            ```
+                ```
             """).strip()
             
             return f"{base_prompt}\n\n{modification_rules}"
@@ -271,21 +270,24 @@ class PromptGenerator:
         
         delete_rules = dedent("""
             ## 删除规则
-            1. 识别用户要删除的日程:
-               - 匹配标题、时间或内容中的关键词
-               - 如果匹配多个，选择最可能的一个
-            
-            2. 响应格式:
-               ```json
-               {
-                    "schedule_id": 要删除的日程对应id
-                    "title": "要删除的日程标题"
-               }
-               ```
-            
-            3. 如果找不到匹配日程，返回空对象
-            
-            4. 否则返回可能要删除的日程
+            1. 你的任务是根据用户输入，在已有日程列表中查找最匹配的日程，并返回其id和title。
+            2. 匹配优先级如下（按顺序）：
+                a. id完全匹配（如用户直接说“删除id为X的日程”）
+                b. 标题完全匹配（如“删除‘XXX’日程”）
+                c. 标题部分匹配（如“上一个日程”“刚才的日程”“取消人工智能考试”）
+                d. 时间完全匹配（如“删除明天8点的日程”）
+                e. 内容部分匹配（如“删除交作业的提醒”）
+                f. 如果用户说“上一个日程”“刚才的日程”，请选取时间最接近当前时间且未归档的日程。
+            3. id和title必须严格从已有日程列表中选取，不能凭空生成。
+            4. 如果找不到任何匹配项，返回空对象：`{}`。
+            5. 返回格式如下：
+            ```json
+            {
+                    "id": 1,
+                    "title": "完成数值分析作业"
+            }
+            ```
+            6. 只返回JSON格式结果，不要解释。
         """).strip()
         
         return f"{base_prompt}\n\n{delete_rules}"

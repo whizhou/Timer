@@ -138,11 +138,12 @@ def quantity():
     quantity = scheduler.get_schedule_quantity()
     return jsonify({'quantity': quantity})
 
-@bp.teardown_request
-def teardown_request(exception):
+@bp.after_app_request
+def after_request(response):
     """
-    Teardown request to clean up resources.
+    After request to clean up resources.
     """
     # Here you can add any cleanup code if needed
     from core.core import scheduler
     scheduler.save()
+    return response
