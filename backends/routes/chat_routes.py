@@ -41,7 +41,7 @@ def chat():
     # print(f"Received message: {message}")
     res = scheduler.process_user_request({'word': message})
     schedule: Dict = {}
-    response: str = ''
+    response: str = ""
     if isinstance(res, dict):
         if res['status'] == 'error':
             # success = False
@@ -49,15 +49,15 @@ def chat():
 
         elif res['action'] == 'create':
             schedule = res['schedule_data']
-            response = f'成功创建日程: {schedule['content']['title']} (id={schedule['id']})'
+            response = f"成功创建日程: {schedule['content']['title']} (id={schedule['id']})"
 
         elif res['action'] == 'modify':
             schedule = res['modified']
             assert schedule['id'] == res['schedule_id'], "Schedule ID mismatch"
-            response = f'成功更新日程: {schedule['content']['title']} (id={res["schedule_id"]})'
+            response = f"成功更新日程: {schedule['content']['title']} (id={res['schedule_id']})"
 
         elif res['action'] == 'delete':
-            response = f'成功删除日程: {res['schedule_title']} (id={res['schedule_id']})'
+            response = f"成功删除日程: {res['schedule_title']} (id={res['schedule_id']})"
     elif isinstance(res, str):
         response = res
     else:
