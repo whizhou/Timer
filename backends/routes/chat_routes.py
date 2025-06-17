@@ -4,6 +4,7 @@ from flask import (
 from flask import session
 from flask import current_app
 from openai import OpenAI
+from typing import Dict, Union, List
 
 bp = Blueprint('chat', __name__, url_prefix='/chat')
 
@@ -34,26 +35,42 @@ def chat():
     else:
         return jsonify({'error': 'Invalid request method'}), 405
 
-    messages = session.get('messages', None)
-    ##########################################################################
-    # Here you would typically process the message and get a response
-    # For now, we'll just echo the message back
+    messages: List[Dict] = session.get('messages', [])
 
-    if messages is None:
-        messages = [{'role': 'system', 'content': "你是Timer，一个智能的日程助手，擅长从学生输入的任务中提取关键信息（如截止时间、任务内容），并智能推断合理的日程标题、主要内容、预计耗时、最晚开始时间。"}]
-    messages.append({'role': 'user', 'content': message})
-    client = OpenAI(api_key=current_app.config['DEEPSEEK_API_KEY'], base_url="https://api.deepseek.com")
-    response = client.chat.completions.create(
-        model="deepseek-chat",
-        messages=messages,  # type: ignore
-        stream=False,
-    )
-    response = response.choices[0].message.content
-    ##########################################################################
+    from core.core import scheduler
+    # print(f"Received message: {message}")
+    res = scheduler.process_user_request({'word': message})
+    schedule: Dict = {}
+    response: str = ""
+    if isinstance(res, dict):
+        if res['status'] == 'error':
+            # success = False
+            response = res['error']  # 先把错误信息返回前端输出
+
+        elif res['action'] == 'create':
+            schedule = res['schedule_data']
+            response = f"成功创建日程: {schedule['content']['title']} (id={schedule['id']})"
+
+        elif res['action'] == 'modify':
+            schedule = res['modified']
+            assert schedule['id'] == res['schedule_id'], "Schedule ID mismatch"
+            response = f"成功更新日程: {schedule['content']['title']} (id={res['schedule_id']})"
+
+        elif res['action'] == 'delete':
+            response = f"成功删除日程: {res['schedule_title']} (id={res['schedule_id']})"
+    elif isinstance(res, str):
+        response = res
+    else:
+        raise ValueError("Unexpected response type from process_user_request")
 
     # messages.append({'role': 'user', 'content': message})
-    messages.append({'role': 'assistant', 'content': response})
+    assistant_message = {
+        'role': 'assistant',
+        'content': response,
+        'schedule': schedule
+    }
+    messages.append(assistant_message)
 
     session['messages'] = messages
 
-    return jsonify({'messages': messages, 'response': response}), 200
+    return jsonify({'messages': messages, 'response': response, 'schedule': schedule}), 200
