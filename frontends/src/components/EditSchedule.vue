@@ -1,13 +1,12 @@
 <template>
   <div>
+    <el-button
+    class="delete-btn" 
+    type="text"
+    @click="init()"
+    >修改</el-button>
 
-    <!-- AAA -->
-    <el-button plain @click="Visible = true">
-      <b>创建日程</b>
-    </el-button>
-    <!-- AAA -->
-
-    <el-dialog v-model="Visible" title="创建日程" :before-close="cancel">
+    <el-dialog v-model="Visible" title="修改日程" :before-close="cancel">
       <el-form ref="form" :model="form" label-width="100px">
         <el-form-item label="标题">
           <el-input v-model="form.content.title"></el-input>
@@ -77,7 +76,8 @@
 import { ref } from 'vue'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { cloneDeep } from "lodash"
-import { AddSchedule } from '../utils/DataManager'
+import { AddSchedule,DeleteSchedule,GetSchedule } from '../utils/DataManager'
+import globalStore from '@/utils/GlobalStore'
 
 // 初始表单数据
 const initialForm = {
@@ -98,10 +98,30 @@ export default {
       Visible: ref(false)
     }
   },
+  props : {
+    origin : {
+      required : true,
+      type : Object,
+    },
+    cover : {
+      type : Boolean,
+      dafault : false,
+    }
+  },
   methods: {
-    // 重置表单到初始状态
-    clean() {
-      this.form = cloneDeep(initialForm)
+    //复制表单
+    init() {
+      this.form = cloneDeep(initialForm);
+      if (this.origin.type!=undefined)
+        this.form.type=this.origin.type;
+      if (this.origin.content!=undefined) {
+        Object.keys(this.form.content).forEach(key => {
+            if (this.origin.content[key]!=undefined) {
+              this.form.content[key]=this.origin.content[key];
+            }
+        })
+      }
+      this.Visible = true;
     },
     
     // 提交表单
@@ -126,16 +146,23 @@ export default {
         }
       }
       
+      let newID = Date.now();
       // 添加日程
       AddSchedule({
         id: Date.now(),
         type: this.form.type,
         content: filteredContent
       })
+
+      DeleteSchedule(this.origin.id);
+
+      // 删除原有日程
+
+      if (this.cover)
+        this.origin = GetSchedule(newID);
       
-      ElMessage.success("日程创建成功")
+      ElMessage.success("日程修改成功")
       this.Visible = false
-      this.clean()
     },
     
     // 过滤空值
@@ -172,7 +199,7 @@ export default {
     // 取消操作
     cancel() {
       ElMessageBox.confirm(
-        "确定取消创建日程？",
+        "确定取消修改日程？",
         "警告",
         {
           confirmButtonText: "确认",
@@ -180,7 +207,6 @@ export default {
         }
       ).then(() => {
         this.Visible = false
-        this.clean()
       }).catch(() => {
         // 用户点击了返回，不做操作
       })
@@ -210,4 +236,10 @@ export default {
 .el-select, .el-input, .el-textarea {
   width: 100%;
 }
+
+.delete-btn {
+  padding: 0;
+  margin: 0;
+}
+
 </style>

@@ -9,6 +9,7 @@ function AddSchedule (data) {
     if (globalStore.UserSchedules.length>0)
         len = globalStore.UserSchedules[globalStore.UserSchedules.length-1].id+1
     data.id = len;
+    data.status = false;
     globalStore.UserSchedules.push(data);
     let resopnse = PostDataToServer(serverURL+"schedule/",{schedules:[data]});
     // console.log(resopnse);
@@ -21,6 +22,22 @@ function DeleteSchedule (id) {
         globalStore.UserSchedules.splice(index,1);
         DeleteFromServer(serverURL+"schedule/"+String(id));
     } else console.log("Error When Deleting");
+}
+
+function GetSchedule (id) {
+    let index = 0;
+    while (index<globalStore.UserSchedules.length && globalStore.UserSchedules[index].id!=id) index+=1;
+    if (index<globalStore.UserSchedules.length) {
+        return globalStore.UserSchedules[index];
+    } else return {};
+}
+
+function GetScheduleIndex (id) {
+    let index = 0;
+    while (index<globalStore.UserSchedules.length && globalStore.UserSchedules[index].id!=id) index+=1;
+    if (index<globalStore.UserSchedules.length) {
+        return index;
+    } else return -1;
 }
 
 function GetDataFromServer (TargetURL) {
@@ -62,6 +79,7 @@ function SyncFromServer () {
         url : serverURL+"schedule/",
     }).then((res)=>{
         globalStore.UserSchedules = res.data.schedules;
+        console.log(globalStore.UserSchedules);
     }).catch(()=>{
         console.log("server error");
     })
@@ -70,6 +88,8 @@ function SyncFromServer () {
 export {
     AddSchedule,
     DeleteSchedule,
+    GetSchedule,
+    GetScheduleIndex,
     GetDataFromServer,
     PostDataToServer,
     DeleteFromServer,
