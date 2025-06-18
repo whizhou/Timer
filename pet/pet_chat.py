@@ -583,7 +583,7 @@ class PetChatWindow(QWidget):
         
         # 如果有控制器，可以通过它来更新桌宠的状态
         if self.pet_controller:
-            self.pet_controller.interactWithUser(response)
+            self.pet_controller.interact_with_user(response)
     
     def add_message(self, text, is_user=True, show_thinking=False, thinking_time=1):
         """添加消息到聊天区域"""
