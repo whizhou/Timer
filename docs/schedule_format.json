@@ -9,17 +9,17 @@
             "title": "the title of the schedule",
             "content": "the content of the schedule (optional)",
             "whole_day": "bool: whether the schedule is a whole day event",
-            "begin_time": ["YYYY-MM-DD", "HH:MM (default 08:00)"],
-            "end_time": ["YYYY-MM-DD", "HH:MM (default 23:59)"],
+            "begin_time": ["YYYY-MM-DD", "HH:MM:SS (default 08:00:00)"],
+            "end_time": ["YYYY-MM-DD", "HH:MM:SS (default 23:59:59)"],
             "location": "the location of the schedule (optional)",
-            "remind_start": ["YYYY-MM-DD (date to start reminding)", "HH:MM (default 08:00)"],
+            "remind_start": ["YYYY-MM-DD (date to start reminding)", "HH:MM:SS (default 08:00:00)"],
             "remind_before": "the time (in minutes) to remind before the schedule starts (optional)",
             "tag": "the tag of the schedule (optional)",
             "repeat": {
                 "repeat": "bool: whether the schedule is a repeat event",
                 "type": "the type of repeat (e.g., daily, weekly, monthly) (optional)",
                 "every": "the interval of repeat (e.g., 1) (optional)",
-                "repeat_until": ["YYYY-MM-DD", "HH:MM (default 23:59)"]
+                "repeat_until": ["YYYY-MM-DD", "HH:MM:SS (default 23:59:59)"]
             },
             "additional_info": [
                 "any additional information related to the schedule (optional)",
@@ -38,8 +38,8 @@
         "content": {
             "title": "the title of the reminder",
             "content": "the content of the reminder (optional)",
-            "end_time": ["YYYY-MM-DD", "HH:MM (default 23:59)"],
-            "remind_start": ["YYYY-MM-DD (date to start reminding)", "HH:MM (default 08:00)"],
+            "end_time": ["YYYY-MM-DD", "HH:MM:SS (default 23:59:00)"],
+            "remind_start": ["YYYY-MM-DD (date to start reminding)", "HH:MM:SS (default 08:00:00)"],
             "remind_before": "the time (in minutes) to remind before the reminder starts (optional)",
             "conflict_check": "the conflict check message (optional)",
             "tag": "the tag of the reminder (optional)",

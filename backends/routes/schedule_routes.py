@@ -3,6 +3,7 @@ from flask import (
 )
 from flask import session
 from typing import List, Dict
+from datetime import datetime, timedelta
 
 bp = Blueprint('schedule', __name__, url_prefix='/schedule')
 
@@ -136,6 +137,39 @@ def quantity():
     """
     from core.core import scheduler
     quantity = scheduler.get_schedule_quantity()
+    return jsonify({'quantity': quantity})
+
+@bp.route('/titles/<int:days>', methods=['GET'])
+def tomorrow_titles(days: int):
+    """
+    Get the titles of schedules for tomorrow.
+
+    Returns:
+        JSON: {'titles': schedule titles for tomorrow}
+    """
+    from core.core import scheduler
+    schedules = scheduler.get_schedules()
+    titles = []
+    target_date = (datetime.now() + timedelta(days=days)).date()
+    for schedule in schedules:
+        schedule_date = datetime.strptime(schedule['content']['end_time'][0], '%Y-%m-%d').date()
+        if schedule_date == target_date:
+            titles.append(schedule['content']['title'])
+    print(f"Titles for tomorrow ({days} days later): {titles}")
+    return jsonify({'titles': titles})
+
+@bp.route('/quantity/<int:days>', methods=['GET'])
+def tomorrow_quantity(days: int):
+    """
+    Get the quantity of schedules for tomorrow.
+
+    Returns:
+        JSON: {'quantity': int} - The number of schedules for tomorrow
+    """
+    from core.core import scheduler
+    schedules = scheduler.get_schedules()
+    target_date = (datetime.now() + timedelta(days=days)).date()
+    quantity = sum(1 for schedule in schedules if datetime.strptime(schedule['content']['end_time'][0], '%Y-%m-%d').date() == target_date)
     return jsonify({'quantity': quantity})
 
 @bp.after_app_request

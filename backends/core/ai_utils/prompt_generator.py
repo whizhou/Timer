@@ -54,17 +54,17 @@ class PromptGenerator:
                     "title": "日程标题",
                     "content": "详细内容(可选)",
                     "whole_day": true/false,默认设置为false
-                    "begin_time": ["YYYY-MM-DD", "HH:MM (默认08:00)"],
-                    "end_time": ["YYYY-MM-DD", "HH:MM (默认23:59)"],
+                    "begin_time": ["YYYY-MM-DD", "HH:MM:SS (默认08:00:00)"],
+                    "end_time": ["YYYY-MM-DD", "HH:MM:SS (默认23:59:59)"],
                     "location": "地点(可选)",
-                    "remind_start": ["YYYY-MM-DD", "HH:MM (默认08:00)"],
+                    "remind_start": ["YYYY-MM-DD", "HH:MM:SS (默认08:00:00)"],
                     "remind_before": "提前提醒分钟数(可选)"（默认设置为120）
                     "tag": "标签(可选)",默认设置为default
                     "repeat": {
                         "repeat": true/false,默认设置为false
                         "type": "重复类型(daily/weekly/monthly)(可选)",
                         "every": "重复间隔(可选)",
-                        "repeat_until": ["YYYY-MM-DD", "HH:MM (默认23:59)"]
+                        "repeat_until": ["YYYY-MM-DD", "HH:MM:SS (默认23:59:59)"]
                     },
                     "additional_info": [
                         "附加信息(可选)"，默认设置为空
@@ -85,8 +85,8 @@ class PromptGenerator:
                 "content": {
                     "title": "提醒标题",
                     "content": "详细内容(可选)",
-                    "end_time": ["YYYY-MM-DD", "HH:MM (默认23:59)"],
-                    "remind_start": ["YYYY-MM-DD", "HH:MM (默认08:00)"],
+                    "end_time": ["YYYY-MM-DD", "HH:MM:SS (默认23:59:59)"],
+                    "remind_start": ["YYYY-MM-DD", "HH:MM:SS (默认08:00:00)"],
                     "remind_before": "提前提醒分钟数(可选)",（默认设置为120）
                     "conflict_check": "冲突检查信息(可选)",默认设置为false
                     "tag": "标签(可选)",默认设置为default
@@ -120,12 +120,12 @@ class PromptGenerator:
                 * 当缺少明确的begin_time和end_time时，自动设置为reminder类型
                 * 仅有一个时间点（如“下午三点”或“明天三点”）时，自动设置为reminder类型
                 * content中的title, end_time为必填项
-                * remind_start和remind_before为必填项(默认值分别为end_time那一天的08:00和120分钟)
+                * remind_start和remind_before为必填项(默认值分别为end_time那一天的08:00:00和120分钟)
             - 对于schedule类型:
                 * 必须同时有明确的begin_time和end_time，只有其中一项无法设置为schedule类型。
                 * 只有用户输入中同时包含起始时间(begin_time)和结束时间(end_time)时，才可设置为schedule类型，否则一律为reminder类型
                 * content中的title, begin_time, end_time为必填项
-                * remind_start和remind_before为必填项(默认值分别为end_time那一天的08:00和120分钟)
+                * remind_start和remind_before为必填项(默认值分别为end_time那一天的08:00:00和120分钟)
             
              3. 特别注意:
             - 完全忽略id字段的识别和创建，id应由数据库自动生成
@@ -143,9 +143,9 @@ class PromptGenerator:
                 "type": "schedule",
                 "content": {{
                     "title": "小组会议",
-                    "begin_time": ["2023-10-15", "14:00"],
-                    "end_time": ["2023-10-15", "15:30"],
-                    "remind_start": ["2023-10-15", "08:00"],
+                    "begin_time": ["2023-10-15", "14:00:00"],
+                    "end_time": ["2023-10-15", "15:30:00"],
+                    "remind_start": ["2023-10-15", "08:00:00"],
                     "remind_before": 120,
                 }}
             }}
@@ -158,8 +158,8 @@ class PromptGenerator:
                 "content": {{
                     "title": "提交作业",
                     "content": "记得提交数学作业"
-                    "end_time": ["2023-10-16", "23:59"],
-                    "remind_start": ["2023-10-16", "08:00"],
+                    "end_time": ["2023-10-16", "23:59:59"],
+                    "remind_start": ["2023-10-16", "08:00:00"],
                     "remind_before": 120,
                 }}
             }}
@@ -198,7 +198,7 @@ class PromptGenerator:
                 3. 字段处理规则:
                 - 必须始终包含id字段
                 - 修改时间时，必须自动调整相关提醒时间，重新计算remind_start和remind_before
-                    (默认值分别为修改后的end_time那一天的08:00和120分钟)
+                    (默认值分别为修改后的end_time那一天的08:00:00和120分钟)
                 - 只有明确提出修改为日程，并且给出了schedule所需的begin_time才会修改为schedule
                 - 无论什么条件下，返回的两个日程必须是完整的，符合json模版要求的
                 
@@ -217,10 +217,10 @@ class PromptGenerator:
                             "title": "小组会议",
                             "content": "讨论项目进度",
                             "whole_day": false,
-                            "begin_time": ["2023-10-15", "14:00"],
-                            "end_time": ["2023-10-15", "15:00"],
+                            "begin_time": ["2023-10-15", "14:00:00"],
+                            "end_time": ["2023-10-15", "15:00:00"],
                             "location": "会议室A",
-                            "remind_start": ["2023-10-15", "08:00"],
+                            "remind_start": ["2023-10-15", "08:00:00"],
                             "remind_before": 120,
                             "tag": "work",
                             "repeat": {
@@ -239,10 +239,10 @@ class PromptGenerator:
                             "title": "项目进度会议",  # 修改标题
                             "content": "讨论项目进度",
                             "whole_day": false,
-                            "begin_time": ["2023-10-15", "14:30"],  # 修改开始时间
-                            "end_time": ["2023-10-15", "15:30"],   # 修改结束时间
+                            "begin_time": ["2023-10-15", "14:30:00"],  # 修改开始时间
+                            "end_time": ["2023-10-15", "15:30:00"],   # 修改结束时间
                             "location": "会议室A",
-                            "remind_start": ["2023-10-15", "08:00"],
+                            "remind_start": ["2023-10-15", "08:00:00"],
                             "remind_before": 120,
                             "tag": "work",
                             "repeat": {
