@@ -3,24 +3,25 @@
     <el-row>
       <el-col>
         <h1>
-          Timer<el-button style="float: right" @click="Sync()"
+          Timer
+          <!-- <el-button style="float: right" @click="Sync()"
             ><b>测试：同步</b></el-button
-          >
+          > -->
         </h1>
         <el-menu class="MainMenu" router>
-          <el-menu-item index="/dashboard">
+          <el-menu-item index="/dashboard" @click="Sync()">
             <el-icon><Monitor /></el-icon>
             <span>仪表盘</span>
           </el-menu-item>
-          <el-menu-item index="/">
+          <el-menu-item index="/" @click="Sync()">
             <el-icon><Document /></el-icon>
             <span>日程</span>
           </el-menu-item>
-          <el-menu-item index="/deepseekchat">
-            <el-icon><setting /></el-icon>
+          <el-menu-item index="/deepseekchat" @click="Sync()">
+            <el-icon><Setting /></el-icon>
             <span>对话</span>
           </el-menu-item>
-          <el-menu-item index="/calendar">
+          <el-menu-item index="/calendar" @click="Sync()">
             <el-icon><Calendar /></el-icon>
             <span>日历</span>
           </el-menu-item>
@@ -45,6 +46,10 @@ import { SyncFromServer } from "../utils/DataManager";
 export default {
   components: {
     SyncFromServer,
+    Calendar,
+    Monitor,
+    Document,
+    Setting,
   },
   methods: {
     Sync() {

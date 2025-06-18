@@ -2,12 +2,6 @@
   <div class="chat-page">
     <el-container>
       <el-aside width="240px" class="sidebar">
-        <div class="sidebar-header">
-          <div class="app-logo">
-            <img src="https://www.deepseek.com/favicon.ico" alt="Logo" />
-            <h2>Timer</h2>
-          </div>
-        </div>
         <leftbar></leftbar>
       </el-aside>
 

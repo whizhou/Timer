@@ -99,7 +99,7 @@
               </el-form-item>
               
               <el-form-item label="类型">
-                <el-select v-model="form.type" placeholder="请选择类型">
+                <el-select v-model="form.content.tag" placeholder="请选择类型">
                   <el-option label="工作" value="work"></el-option>
                   <el-option label="学习" value="study"></el-option>
                   <el-option label="生活" value="life"></el-option>
@@ -128,8 +128,8 @@ import { AddSchedule } from '../utils/DataManager'
 
 // 初始表单数据
 const initialForm = {
-  type: "",
   content: {
+    tag : "",
     title: "",
     begin_time: ["", ""],
     end_time: ["", ""],
@@ -226,7 +226,6 @@ export default {
       // 添加日程
       AddSchedule({
         id: Date.now(),
-        type: this.form.type,
         content: filteredContent
       })
       
