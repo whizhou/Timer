@@ -163,7 +163,7 @@ class ScheduleManager(Database):
         for schedule in self._file['schedules']:
             if 'remind_start' in schedule:
                 remind_start = ' '.join(schedule['remind_start']).strip()
-                remind_start = datetime.strptime(remind_start, '%Y-%m-%d %H:%M')
+                remind_start = datetime.strptime(remind_start, '%Y-%m-%d %H:%M:%S')
                 if remind_start < datetime.now():
                     reminders.append(schedule)
         return reminders
@@ -177,7 +177,7 @@ class ScheduleManager(Database):
         for schedule in self._file['schedules']:
             if 'remind_before' in schedule:
                 begin_time = ' '.join(schedule['begin_time']).strip()
-                begin_time = datetime.strptime(begin_time, '%Y-%m-%d %H:%M')
+                begin_time = datetime.strptime(begin_time, '%Y-%m-%d %H:%M:%S')
                 remind_before = schedule.get('remind_before', 0)
                 # remind_before is the time (in minutes) to remind before the schedule starts (optional)
                 remind_start = begin_time - timedelta(minutes=remind_before)
