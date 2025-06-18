@@ -6,6 +6,7 @@ const Trans = reactive({
     end_time : "结束时间",
     location : "地点",
     content : "内容",
+    tag : "类型",
 })
 
 export default Trans;

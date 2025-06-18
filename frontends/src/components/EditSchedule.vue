@@ -55,7 +55,7 @@
         </el-form-item>
         
         <el-form-item label="类型">
-          <el-select v-model="form.type" placeholder="请选择类型">
+          <el-select v-model="form.content.tag" placeholder="请选择类型">
             <el-option label="工作" value="work"></el-option>
             <el-option label="学习" value="study"></el-option>
             <el-option label="生活" value="life"></el-option>
@@ -76,13 +76,13 @@
 import { ref } from 'vue'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { cloneDeep } from "lodash"
-import { AddSchedule,DeleteSchedule,GetSchedule } from '../utils/DataManager'
+import { AddSchedule,DeleteSchedule,GetSchedule,SyncFromServer } from '../utils/DataManager'
 import globalStore from '@/utils/GlobalStore'
 
 // 初始表单数据
 const initialForm = {
-  type: "",
   content: {
+    tag : "",
     title: "",
     begin_time: ["", ""],
     end_time: ["", ""],
@@ -95,7 +95,8 @@ export default {
   data() {
     return {
       form: cloneDeep(initialForm),
-      Visible: ref(false)
+      Visible: ref(false),
+      OriginId: 0,
     }
   },
   props : {
@@ -103,14 +104,11 @@ export default {
       required : true,
       type : Object,
     },
-    cover : {
-      type : Boolean,
-      dafault : false,
-    }
   },
   methods: {
     //复制表单
     init() {
+      this.OriginId = cloneDeep(this.origin.id);
       this.form = cloneDeep(initialForm);
       if (this.origin.type!=undefined)
         this.form.type=this.origin.type;
@@ -125,7 +123,7 @@ export default {
     },
     
     // 提交表单
-    submit() {
+    async submit() {
       // 过滤空值
       const filteredContent = this.filter(this.form.content)
       
@@ -146,23 +144,22 @@ export default {
         }
       }
       
-      let newID = Date.now();
-      // 添加日程
-      AddSchedule({
-        id: Date.now(),
-        type: this.form.type,
-        content: filteredContent
-      })
-
-      DeleteSchedule(this.origin.id);
-
-      // 删除原有日程
-
-      if (this.cover)
-        this.origin = GetSchedule(newID);
+       try { 
+          await SyncFromServer();
+          console.log(-1);
+          const retValue = await AddSchedule({
+            content: filteredContent
+          });
+          console.log(1);
+          await DeleteSchedule(this.OriginId);
+          console.log(2);
+          ElMessage.success("日程修改成功")
+          this.Visible = false
+          this.$emit('change', retValue);
+        } catch (error) {
+          ElMessage.error("操作失败: " + error.message);
+      }
       
-      ElMessage.success("日程修改成功")
-      this.Visible = false
     },
     
     // 过滤空值

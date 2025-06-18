@@ -23,7 +23,7 @@
                 <div class="card-header">
                 <span v-if="message.schedule.content!=undefined"><b>{{ message.schedule.content.title }}</b></span>
                 <span v-else><b>无题</b></span>
-                  <!-- <edit-schedule :origin="message.schedule"></edit-schedule> -->
+                   <edit-schedule :origin="message.schedule" @change="(newSchedule)=>message.schedule=newSchedule"></edit-schedule>
                   <el-button 
                     class="delete-btn" 
                     type="text" 
@@ -33,9 +33,14 @@
               </template>
               <div class="card-content">
                 <div v-for="(value, key) in message.schedule.content">
-                  <p v-if="key != 'title'">
-                    <b>{{ key }} : </b>{{ value }}
-                  </p>
+                  <div v-if="key != 'title' && Trans[key]!=undefined && value != ''">
+                    <p v-if="value.constructor==Array">
+                      <b>{{ Trans[key] }} : </b>{{ value[0] }} {{ value[1] }}
+                    </p>
+                    <p v-else>
+                      <b>{{ Trans[key] }} : </b>{{ value }}
+                    </p>
+                  </div>
                 </div>
               </div>
             </el-card>
@@ -60,11 +65,21 @@
 
 import { DeleteSchedule } from '../utils/DataManager';
 import EditSchedule from './EditSchedule.vue';
+import Trans from "../utils/Trans.js"
+import { cloneDeep } from 'lodash';
+import { GetSchedule } from '../utils/DataManager';
+import globalStore from '@/utils/GlobalStore';
 
 export default {
   name: "ChatBox",
+  data () {
+    return {
+      Trans
+    }
+  },
   components : {
-    EditSchedule
+    EditSchedule,
+    GetSchedule,
   },
   props: {
     messages: {

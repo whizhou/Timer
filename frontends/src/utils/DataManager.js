@@ -5,23 +5,33 @@ import globalStore from "./GlobalStore"
 const serverURL = 'http://127.0.0.1:5000/';
 
 function AddSchedule (data) {
-    let len = 1;
-    if (globalStore.UserSchedules.length>0)
-        len = globalStore.UserSchedules[globalStore.UserSchedules.length-1].id+1
-    data.id = len;
+    let max = 1;
+    if (globalStore.UserSchedules.length>0) {
+        for (schedule in globalStore.UserSchedules)
+            if (schedule.id>max) max=schedule.id
+        max = max+1;
+    }
+    if (data.type==undefined)
+        data.type = (data.content.begin_time==undefined || data.content.begin_time=="")?"reminder":"schedule";
+    data.id = max;
     data.status = false;
     globalStore.UserSchedules.push(data);
+    let retValue = data;
     let resopnse = PostDataToServer(serverURL+"schedule/",{schedules:[data]});
+    return retValue;
     // console.log(resopnse);
 }
 
 function DeleteSchedule (id) {
+    console.log(id);
+    console.log(globalStore.UserSchedules);
     let index = 0;
     while (index<globalStore.UserSchedules.length && globalStore.UserSchedules[index].id!=id) index+=1;
     if (index<globalStore.UserSchedules.length) {
         globalStore.UserSchedules.splice(index,1);
         DeleteFromServer(serverURL+"schedule/"+String(id));
     } else console.log("Error When Deleting");
+    console.log("11",globalStore.UserSchedules);
 }
 
 function GetSchedule (id) {

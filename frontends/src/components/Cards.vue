@@ -24,14 +24,14 @@
       </template>
       <div class="card-content">
         <div v-for="(value, key) in card.content">
-          <p v-if="key != 'title'">
+          <div v-if="key != 'title' && Trans[key]!=undefined && value != ''">
             <p v-if="value.constructor==Array">
               <b>{{ Trans[key] }} : </b>{{ value[0] }} {{ value[1] }}
             </p>
             <p v-else>
               <b>{{ Trans[key] }} : </b>{{ value }}
             </p>
-          </p>
+          </div>
         </div>
       </div>
     </el-card>
