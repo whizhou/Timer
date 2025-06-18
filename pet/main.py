@@ -1,3 +1,4 @@
+
 """
 桌宠应用程序主入口
 负责初始化和启动桌宠应用
@@ -6,7 +7,9 @@ from PyQt5.QtWidgets import QApplication
 import sys
 import os
 
+
 from config import PetConfig
+
 from desktop_pet_ui import DesktopPetUI
 from desktop_pet_controller import DesktopPetController
 from desktop_pet import DesktopPet
@@ -88,4 +91,3 @@ def main():
 if __name__ == '__main__':
     exit_code = main()
     sys.exit(exit_code)
-

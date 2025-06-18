@@ -1,17 +1,21 @@
+
 """
 桌宠控制器模块
 负责桌宠的核心逻辑控制、动画管理和用户交互处理
 """
 from PyQt5.QtCore import QTimer
 from PyQt5.QtWidgets import QApplication
+
 import random
 import os
 import threading
 import time
+
 from typing import Optional
 from config import PetConfig
 from schedule_manager import ScheduleManager
 from Bubble import Msg
+
 
 # 获取当前脚本的绝对路径
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -29,6 +33,7 @@ def get_resource_path(relative_path):
     return local_path
 
 class DesktopPetController:
+
     """桌宠核心控制器类"""
     
     def __init__(self, pet, ui):
