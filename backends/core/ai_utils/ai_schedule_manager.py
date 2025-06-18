@@ -22,17 +22,17 @@ class AIScheduleManager:
                 "title": "",
                 "content": "",
                 "whole_day": False,
-                "begin_time": ["", "08:00"],  # 日期将在创建时填充
-                "end_time": ["", "23:59"],    # 日期将在创建时填充
+                "begin_time": ["", "08:00:00"],  # 日期将在创建时填充
+                "end_time": ["", "23:59:59"],    # 日期将在创建时填充
                 "location": "",
-                "remind_start": ["", "08:00"],  # 将根据end_time自动计算
+                "remind_start": ["", "08:00:00"],  # 将根据end_time自动计算
                 "remind_before": 120,  # 默认120分钟(2小时)
                 "tag": "default",
                 "repeat": {
                     "repeat": False,
                     "type": "",  # daily/weekly/monthly
                     "every": 1,  # 重复间隔
-                    "repeat_until": ["", "23:59"]
+                    "repeat_until": ["", "23:59:59"]
                 },
                 "additional_info": [],
                 "archive": False,
@@ -49,8 +49,8 @@ class AIScheduleManager:
             "content": {
                 "title": "",
                 "content": "",
-                "end_time": ["", "23:59"],  # 日期将在创建时填充
-                "remind_start": ["", "08:00"],  # 将根据end_time自动计算
+                "end_time": ["", "23:59:59"],  # 日期将在创建时填充
+                "remind_start": ["", "08:00:00"],  # 将根据end_time自动计算
                 "remind_before": 120,  # 默认120分钟(2小时)
                 "conflict_check": False,
                 "tag": "default",

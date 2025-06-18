@@ -106,6 +106,7 @@ class AIScheduler(Scheduler):
             creation_result['id'] = created_ids[0]
 
         self.deepseek_chat._add_assistant_message(str(creation_result))
+
         # self.deepseek_chat._show_history()
         # self.deepseek_chat._check_dialog_pairs()
         
@@ -159,6 +160,7 @@ class AIScheduler(Scheduler):
         self.deepseek_chat._add_assistant_message(str(modification_result))
         # self.deepseek_chat._show_history()
         # self.deepseek_chat._check_dialog_pairs()
+
         
         return {
             "status": "success",
@@ -196,6 +198,7 @@ class AIScheduler(Scheduler):
         schedule_id = int(deletion_result.get("id"))
         schedule_title = deletion_result.get("title", "")
         
+
         # print(schedule_id)
         # print(schedule_title)
         success = self.delete_schedule(schedule_id)
