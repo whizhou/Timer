@@ -68,7 +68,7 @@ class AIScheduleManager:
                 model="deepseek-chat",
                 messages=prompt_content,
                 temperature=0.3,
-                max_tokens=10
+                max_tokens=16
             )
             
             result = response.choices[0].message.content.strip().upper()
