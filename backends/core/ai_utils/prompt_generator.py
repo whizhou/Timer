@@ -292,6 +292,84 @@ class PromptGenerator:
         
         return f"{base_prompt}\n\n{delete_rules}"
     
+    def _parse_inquery(
+        self,
+        existing_schedules: Optional[List[Dict]] = None
+    ) -> str:
+        """生成查询日程的专用提示词"""
+        if not existing_schedules:
+            raise ValueError("查询日程必须提供已有日程列表")
+            
+        base_prompt = self._generate_system_prompt(existing_schedules)
+        
+        inquery_rules = dedent("""
+            ## 查询规则
+            0. 如果用户没有说明任何查询条件，默认返回时间最近的3个未归档日程。
+            1. 否则你的任务是根据用户输入，在已有日程列表中查找匹配度比较高的日程，并返回匹配日程的完整日志json。
+            2. 匹配优先级如下（按顺序）：
+                a. 时间范围匹配（如“查询明天的日程”）
+                b. 标题完全匹配（如“查询‘XXX’日程”）
+                c. 标题部分匹配（如“上一个日程”“刚才的日程”“查询人工智能考试”）
+                d. 内容部分匹配（如“查询交作业的提醒”）
+                e. id完全匹配（如用户直接说“查询id为X的日程”）
+                f. 如果用户说“上一个日程”“刚才的日程”，请选取时间最接近当前时间且未归档的日程。
+            3. 返回的完整日程项必须严格从已有日程列表中选取，不能凭空生成。
+            4. 返回格式如下：
+            ```json
+            {
+                "schedule_list": [
+                     {
+                        "id": "123",
+                        "timestamp": "2025-06-19 10:00:00",
+                        "type": "schedule",
+                        "AI_readable": true,
+                        "content": {
+                            "title": "小组会议",
+                            "content": "讨论项目进度",
+                            "whole_day": false,
+                            "begin_time": ["2023-10-15", "14:00:00"],
+                            "end_time": ["2023-10-15", "15:00:00"],
+                            "location": "会议室A",
+                            "remind_start": ["2023-10-15", "08:00:00"],
+                            "remind_before": 120,
+                            "tag": "work",
+                            "repeat": {
+                                "repeat": false
+                            },
+                            "additional_info": [],
+                            "archive": false
+                        }
+                    },
+                    {
+                        "id": "234",
+                        "timestamp": "2024-10-16 10:00:00",
+                        "type": "schedule",
+                        "AI_readable": true,
+                        "content": {
+                            "title": "数值分析作业",
+                            "content": "",
+                            "whole_day": false,
+                            "begin_time": ["2024-10-19", "08:00:00"],
+                            "end_time": ["2024-10-19", "20:00:00"],
+                            "location": "",
+                            "remind_start": ["2024-10-19", "08:00:00"],
+                            "remind_before": 120,
+                            "tag": "default",
+                            "repeat": {
+                                "repeat": false
+                            },
+                            "additional_info": [],
+                            "archive": false
+                        }
+                    },
+                ]
+            }
+            ```
+            5. 只返回JSON格式结果，不要解释。
+        """).strip()
+        
+        return f"{base_prompt}\n\n{inquery_rules}"
+    
     def _generate_general_prompt(self) -> str:
         general_prompt = dedent(f"""
             你是一个智能助手，对于用户输入，请直接给出回复内容，不要包含其他说明。
