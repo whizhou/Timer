@@ -15,9 +15,7 @@ def test_multi_chat(client):
     # Test with multiple messages
     messages = [
 
-       "创建日程：明天下午3点开会，会议内容为讨论项目进展",
-       "修改日程：明天下午3点的会议改为后天上午10点",
-    #    "明天上午的会议取消"
+       "查询未来日程",
 
     ]
     

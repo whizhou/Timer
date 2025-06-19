@@ -49,6 +49,7 @@ class AIScheduler(Scheduler):
             "CREATE": self._handle_create_intent,    # 创建意图处理器
             "MODIFY": self._handle_modify_intent,   # 修改意图处理器
             "DELETE": self._handle_delete_intent,    # 删除意图处理器
+            "INQUERY": self._handle_inquery_intent,
             "GENERAL": self._handle_general_intent,
         }
     
@@ -216,6 +217,42 @@ class AIScheduler(Scheduler):
             "schedule_title": schedule_title
         }
     
+    def _handle_inquery_intent(self, user_input: Dict) :
+        """处理查询日程的请求"""
+        all_schedules = self.get_schedules()
+        system_prompt = self.prompt_generator._parse_inquery(all_schedules)
+
+        user_text = str(user_input)
+        self.deepseek_chat._add_user_message(user_text)
+
+        prompt_content = [
+            {"role": "system", "content": f"{system_prompt}"},
+            *self.deepseek_chat.conversation_history
+        ]
+
+        inquery_result = self.ai_schedule_manager._handle_inquery_response(prompt_content)
+
+                # 如果处理结果中有错误，返回错误信息
+        if "error" in inquery_result:
+            return {
+                "status": "error",
+                "action": "inquery",
+                "error": inquery_result["error"]
+            }
+        
+        schedule_list = inquery_result.get("schedule_list")
+        
+        self.deepseek_chat._add_assistant_message(str(inquery_result))
+
+        # for i, schedule in enumerate(schedule_list, 1):
+        #     print(f"{i}: {str(schedule)[:200]}")
+
+        return {
+            "status": "success",
+            "action": "inquery",
+            "schedule_list": schedule_list
+        }
+    
     def _handle_general_intent(self, user_input: Dict) -> Union[Dict ,str]:
         """处理通用意图的回复生成，使用语义分析判断隐含意图"""
         # 使用大语言模型进行语义分析
@@ -236,3 +273,4 @@ class AIScheduler(Scheduler):
             {"role": "user", "content": f"{system_prompt}\n\n 用户输入：{str(user_input)}"}
             ]
         return self.ai_schedule_manager._handle_general_respond(prompt_content)  # 直接返回通用回复
+    

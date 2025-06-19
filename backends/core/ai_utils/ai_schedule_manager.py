@@ -64,7 +64,7 @@ class AIScheduleManager:
         """分析用户输入的隐含意图"""
         user_text = str(user_input)
         prompt = dedent(f"""
-            请分析以下用户输入的隐含意图，判断是否属于创建、修改或删除操作：
+            请分析以下用户输入的隐含意图，判断是否属于创建、修改、删除或查询操作：
             
             用户输入: {user_text}
             
@@ -72,7 +72,8 @@ class AIScheduleManager:
             1. CREATE - 如果用户意图是创建或添加新内容，或者说是用户将要在某时间做什么。
             2. MODIFY - 如果用户意图是修改或更新现有内容
             3. DELETE - 如果用户意图是删除或移除内容，或者用户不再需要做什么。
-            4. GENERAL - 如果不属于以上任何一类
+            4. INQUERY - 如果用户意图是查询某个日程，或者获取最近的日程列表
+            5. GENERAL - 如果不属于以上任何一类
             
             只需返回上述大写关键词，不要包含其他内容。
         """)
@@ -86,7 +87,7 @@ class AIScheduleManager:
             )
             
             result = response.choices[0].message.content.strip().upper()
-            return result if result in ["CREATE", "MODIFY", "DELETE"] else "GENERAL"
+            return result if result in ["CREATE", "MODIFY", "DELETE", "INQUERY"] else "GENERAL"
         except Exception as e:
             print(f"语义分析出错: {e}")
             return "GENERAL"
@@ -202,7 +203,46 @@ class AIScheduleManager:
                 return {"error": f"缺少必要字段: {', '.join(missing)}"}
             
             return result
+        
+        except Exception as e:
+            return {"error": str(e)}
+        
+        
+    def _handle_inquery_response(self, prompt_content: List[Dict[str, str]]) -> Dict[str, Dict]:
+        """
+        处理修改日程的响应（内部方法）
+        返回格式：{
+            "schedule_list" : 查询到的日程列表， # 必须字段
+        }
+        """
+        
+        try:
+            response = self.client.chat.completions.create(
+                model="deepseek-chat",
+                messages=prompt_content,
+                temperature=0.3,
+                max_tokens=2048,
+                response_format={"type": "json_object"}
+            )
             
+            content = response.choices[0].message.content.strip()
+            raw_data = self._extract_json(content)
+            
+            # 基础验证
+            if not isinstance(raw_data, dict):
+                return {"error": "响应格式无效"}
+            
+            # 提取核心字段
+            result = {
+                "schedule_list": raw_data.get("schedule_list")
+            }
+
+             # 验证必须字段
+            if result["schedule_list"] is None:
+                return {"error": f"缺少必要字段: schedule_list"}
+            
+            return result
+        
         except Exception as e:
             return {"error": str(e)}
         
