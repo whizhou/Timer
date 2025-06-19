@@ -11,7 +11,8 @@ from app import create_app
 @pytest.fixture
 def app():
     """Create and configure a new app instance for each test."""
-    app = create_app()
+    from config.config import TestingConfig
+    app = create_app(cfg=TestingConfig)
     app.config['TESTING'] = True
     yield app
 

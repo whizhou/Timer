@@ -5,86 +5,56 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import List, Dict
 
+from .database.schedule_manager import ScheduleManager
+
 
 class Scheduler:
     def __init__(self, app=None):
         if app is not None:
             self.init_app(app)
-        
-        ###############################################################################
-        # Test code
-        ROOT_DIR = Path(__file__).resolve().parent.parent
-        example_schedules_path = ROOT_DIR / 'data' / 'example_schedules.json'
-        example_schedules = json.loads(example_schedules_path.read_text(encoding='utf-8'))
-        self.example_schedules = example_schedules
-        ###############################################################################
 
     def init_app(self, app):
         """Initialize the Scheduler with the given app."""
         self.settings = app.config.get('SCHEDULER_SETTINGS', {})
+        self.manager = ScheduleManager(app)
 
-    def get_schedules(self) -> Dict:
+    def get_schedules(self) -> List[Dict]:
         """Get the schedules from the JSON file.
         Returns:
-            dict: A dictionary containing the schedules.
-        Example:
-            {
-                "schedules": [
-                    {
-                        "id": 1,
-                        "timestamp": 
-                    },
-                    {
-                        "id": 2,
-                        "title": "Schedule 2",
-                        "content": "Content of schedule 2",
-                        "timestamp": "2023-10-02T12:00:00Z"
-                    }
-                ]
-            }
+            dict: A List of schedules read from the file.
         """
-        ###############################################################################
-        # Test code
-        return self.example_schedules
-        ###############################################################################
+        return self.manager.read_schedules()
 
-    def create_schedule(self, schedule: dict) -> int:
+    def create_schedule(self, schedules: List[Dict]) -> List[int]:
         """Create a schedule based on the provided content.
         Args:
-            schedule (dict): Include the content of the schedule and additional information.
+            schedules (List[Dict]): A list of schedules to be created.
         Returns:
-            int: The ID of the created schedule or -1 if creation failed.
+            List[int]: The IDs of the created schedules, -1 if creation failed.
         """
-        return -1
+        return self.manager.create_schedule(schedules)
 
     def get_schedule_by_id(self, schedule_id: int) -> Dict | None:
         """Get a schedule by its ID.
         Args:
             schedule_id (int): The ID of the schedule.
         Returns:
-            dict: The schedule with the given ID.
+            dict | None: The schedule with the given ID, None if not found.
         """
-        ###############################################################################
-        # Test code
-        for schedule in self.example_schedules['schedules']:
-            if schedule['id'] == schedule_id:
-                return schedule
-        return None
-        ###############################################################################
+        return self.manager.read_schedule_by_id(schedule_id)
 
-    def update_schedule(self, schedule: dict) -> bool:
+    def update_schedule(self, schedule_id: int, schedule: Dict) -> bool:
         """Update a schedule by its ID.
         Args:
-            schedule (dict): The updated schedule information.
+            schedule_id (int): The ID of the schedule to update.
+            schedule (Dict): The schedule to be updated.
         Returns:
             bool: True if the update was successful, False otherwise.
         """
-        ###############################################################################
-        # Test code
         if 'id' not in schedule:
-            return False
-        return self.get_schedule_by_id(schedule['id']) is not None
-        ###############################################################################
+            schedule['id'] = schedule_id
+        assert schedule['id'] == schedule_id, "Schedule ID mismatch"
+        return self.manager.update_schedule(schedule)
 
     def delete_schedule(self, schedule_id: int) -> bool:
         """Delete a schedule by its ID.
@@ -93,13 +63,7 @@ class Scheduler:
         Returns:
             bool: True if the deletion was successful, False otherwise.
         """
-        ###############################################################################
-        # Test code
-        if schedule_id < 0:
-            return False
-        return self.get_schedule_by_id(schedule_id) is not None
-        ###############################################################################
-
+        return self.manager.delete_schedule(schedule_id)
 
 
     def archive_schedule(self, schedule_id: int) -> bool:
@@ -109,37 +73,42 @@ class Scheduler:
         Returns:
             bool: True if the archiving was successful, False otherwise.
         """
-        ###############################################################################
-        # Test code
-        if schedule_id < 0:
-            return False
-        return self.get_schedule_by_id(schedule_id) is not None
-        ###############################################################################
+        return self.manager.archive_schedule(schedule_id)
 
 
-    def get_reminders(self) -> List[int]:
-        """Get reminders from the JSON file.
+    def get_remind_start(self) -> List[Dict]:
+        """Get reminders from the JSON file, the schedules' remind_start time is in the past.
         Returns:
-            list[int]: A list containing the id of the schedules that need reminders.
+            List[Dict]: List of schedules that need to be reminded.
         """
-        ###############################################################################
-        # Test code
-        return [schedule['id'] for schedule in self.example_schedules['schedules']]
-        ###############################################################################
+        return self.manager.get_remind_start()
 
-    def sync_schedules(self, info: List[Dict]) -> List[Dict]:
+    def get_remind_before(self) -> List[Dict]:
+        """Get schedules that are about to be reminded.
+        Returns:
+            List[Dict]: List of schedules that are about to be reminded.
+        """
+        return self.manager.get_remind_before()
+
+    def sync_schedules(self, schedules: List[Dict]) -> List[Dict]:
         """Synchronize the schedules with the JSON file.
         Args:
-            info (List[Dict]): A list of dictionaries containing the schedule information.
-                id (int): The ID of the schedules.
-                timestamp (str): The timestamp of the schedules.
+            schedules (List[Dict]): All schedules to be synchronized.
         Returns:
-            List[Dict]: A list of dictionaries containing the schedules needing synchronization.
+            List[Dict]: The synchronized schedules.
         """
-        ###############################################################################
-        # Test code
-        return [schedule for schedule in self.example_schedules['schedules'] if schedule['id'] in [i['id'] for i in info]]
-        ###############################################################################
-
-# Create a global object for Scheduler
-scheduler = Scheduler()
+        return self.manager.sync_schedules(schedules)
+    
+    def save(self) -> bool:
+        """Save the current cache to the JSON file.
+        Returns:
+            bool: True if the save operation was successful, False otherwise.
+        """
+        return self.manager.save_cache()
+    
+    def get_schedule_quantity(self) -> int:
+        """Get the total number of schedules.
+        Returns:
+            int: The total number of schedules.
+        """
+        return self.manager.get_schedule_quantity()
