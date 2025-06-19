@@ -7,7 +7,7 @@ def test_independent_requests():
     # 第一次请求（会创建会话文件）
     response1 = requests.post(
         f"{BASE_URL}/chat", 
-        data={'message': 'First message'}
+        json={'message': 'First message'}
     )
     print("Response 1:", response1.json())
     
@@ -18,14 +18,14 @@ def test_independent_requests():
     # 第二次请求（模拟独立请求，不带Cookie）
     response2 = requests.post(
         f"{BASE_URL}/chat",
-        data={'message': 'Second message'}
+        json={'message': 'Second message'}
     )
     print("Response 2:", response2.json())
     
     # 第三次请求（手动携带之前的会话ID）
     response3 = requests.post(
         f"{BASE_URL}/chat",
-        data={'message': 'Third message'},
+        json={'message': 'Third message'},
         cookies={'session': session_id} if session_id else None  # 手动传递会话ID
     )
     print("Response 3:", response3.json())

@@ -1,6 +1,7 @@
 import sys
 import os
 import time
+import requests
 from PyQt5.QtWidgets import (QApplication, QWidget, QVBoxLayout, QHBoxLayout, 
                              QTextEdit, QLineEdit, QPushButton, QLabel, 
                              QScrollArea, QFrame, QSplitter, QListWidget, 
@@ -10,6 +11,7 @@ from PyQt5.QtGui import QIcon, QPixmap, QColor, QPainter, QPen, QBrush, QFont, Q
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.dirname(current_dir)
+BASE_URL = "http://127.0.0.1:5000"
 
 class MessageBubble(QFrame):
     """聊天气泡组件"""
@@ -498,14 +500,26 @@ class PetChatWindow(QWidget):
         
         # 根据是否启用深度思考模式，决定思考时间显示
         thinking_time = 2 if self.use_deep_thinking else 1
+        
+        # 检查特殊指令
+        if self.pet_controller and ("陪我学习吧" in user_message or "陪我学习" in user_message):
+            self.add_message("好呀，我来陪你一起学习！", False, True, thinking_time)
+            self.pet_controller.play_study_with_me_animation()
+            return
 
-        
-        
         # 简单的关键词匹配响应作为示例
         response = ""
-        lower_msg = user_message.lower()
+        lower_msg = "请模仿桌面宠物的语气回复，语气日常一点、不要太过热情，可以的话偶尔在每句话最后加个\"喵\":" + user_message.lower()
         
-        response = "正在开发中的ai回复信息，敬请期待..."
+        response = requests.post(
+            f"{BASE_URL}/chat",
+            json={'message': lower_msg}
+        )
+        try:
+            response = response.json()["response"]
+        except:
+            response = "正在开发中的ai回复信息，敬请期待..."
+
         # # 深度思考模式下，可以给出更详细的回复
         # if self.use_deep_thinking:
         #     if "你好" in lower_msg or "hello" in lower_msg or "hi" in lower_msg:
