@@ -9,7 +9,7 @@ from typing import List, Dict, Union
 
 from .ai_utils.prompt_generator import PromptGenerator
 from .ai_utils.ai_schedule_manager import AIScheduleManager
-from .ai_utils.intent_classifier import IntentClassifier
+# from .ai_utils.intent_classifier import IntentClassifier
 from .ai_utils.deepseek_chat import DeepSeekChat
 from .scheduler import Scheduler
 from .database.schedule_manager import ScheduleManager
@@ -35,7 +35,7 @@ class AIScheduler(Scheduler):
         # 初始化依赖组件
         self.prompt_generator = PromptGenerator()
         self.ai_schedule_manager = AIScheduleManager()
-        self.intent_classifier = IntentClassifier()
+        # self.intent_classifier = IntentClassifier()
         self.deepseek_chat = DeepSeekChat()
         
         # 设置意图处理器
@@ -65,13 +65,22 @@ class AIScheduler(Scheduler):
             如果是通用对话，返回AI生成的响应字符串
         """
         # 第一步：进行意图分类
-        intent_result = self.intent_classifier._classify_user_intent(user_input)
+        # 使用大语言模型进行语义分析
+        all_schedules = self.get_schedules()
+        system_prompt = self.prompt_generator._generate_analyse_prompt(all_schedules)
+
+        prompt_content = [
+            {"role": "system", "content": f"{system_prompt}"},
+            *self.deepseek_chat.conversation_history,
+            {"role": "system", "content": f"{str(user_input)}"}
+        ]
+
+        semantic_result = self.ai_schedule_manager._analyze_semantic_intent(prompt_content)
         
         # 第二步：根据意图类型获取对应的处理函数
-        handler = self.intent_handlers.get(intent_result.intent_type)
+        handler = self.intent_handlers.get(semantic_result)
         
-        return handler(intent_result.original_text)
-        # return handler(user_input) # 两者意义相同
+        return handler(user_input) # 两者意义相同
     
 
     def _handle_create_intent(self, user_input: Dict) -> Dict:
@@ -253,21 +262,8 @@ class AIScheduler(Scheduler):
             "schedule_list": schedule_list
         }
     
-    def _handle_general_intent(self, user_input: Dict) -> Union[Dict ,str]:
-        """处理通用意图的回复生成，使用语义分析判断隐含意图"""
-        # 使用大语言模型进行语义分析
-        semantic_result = self.ai_schedule_manager._analyze_semantic_intent(user_input)
-        
-        if semantic_result and semantic_result != "GENERAL":
-            handler = self.intent_handlers.get(semantic_result)
-        
-            return handler(user_input)
-        
-        # 如果语义分析也没有识别出特定意图，返回正常回复
-        return self._handle_conversation_intent(user_input)
-    
-    def _handle_conversation_intent(self, user_input: Dict) -> str:
-        """处理通用对话请求的后备方法"""
+    def _handle_general_intent(self, user_input: Dict) -> str:
+        """处理通用意图的回复生成"""
         system_prompt = self.prompt_generator._generate_general_prompt()
         prompt_content = [
             {"role": "user", "content": f"{system_prompt}\n\n 用户输入：{str(user_input)}"}
