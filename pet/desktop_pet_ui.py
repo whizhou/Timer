@@ -1,13 +1,17 @@
+
 """
 桌宠UI界面模块
 负责桌宠的界面显示、动画播放和用户交互
 """
+
 from PyQt5.QtWidgets import QLabel, QMenu, QApplication
 from PyQt5.QtCore import Qt, QTimer, QPoint, QEvent
 from PyQt5.QtGui import QPixmap
 import os
+
 from typing import Optional, Callable
 from config import PetConfig
+
 
 # 获取当前脚本的绝对路径
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -249,6 +253,7 @@ class DesktopPetUI(QLabel):
         self.bubble.setWordWrap(True)
         self.bubble.adjustSize()
         
+
         # 强制更新窗口几何信息，确保位置计算准确
         self.update()
         self.repaint()
