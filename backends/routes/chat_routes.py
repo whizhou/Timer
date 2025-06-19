@@ -58,6 +58,27 @@ def chat():
 
         elif res['action'] == 'delete':
             response = f"成功删除日程: {res['schedule_title']} (id={res['schedule_id']})"
+
+        elif res['action'] == 'inquery':
+            schedule_list = res['schedule_list']
+
+            ds_messages = [
+                {'role': 'system', 'content': '你是一个日程播报助手，负责播报用户的日程信息。要求：\n1. 以 Markdown 格式输出。\n2. 只播报日程内容，不需要其他信息。\n3.信息播报时，保持语言简洁，适当使用表情符号。'
+                    '\n4. 只播报日程，不要多余。'},
+                {'role': 'user', 'content': f"需要播报的日程列表: {schedule_list}"}
+            ]
+
+            client = OpenAI(api_key=current_app.config['DEEPSEEK_API_KEY'], base_url="https://api.deepseek.com")
+            ds_response = client.chat.completions.create(
+                model="deepseek-chat",
+                messages=ds_messages,  # type: ignore
+                stream=False,
+            )
+
+            response = ds_response.choices[0].message.content.strip()  # type: ignore
+
+        else:
+            raise ValueError(f"Unexpected action type: {res['action']}")
     elif isinstance(res, str):
         response = res
     else:
