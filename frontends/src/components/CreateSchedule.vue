@@ -52,7 +52,7 @@
         </el-form-item>
         
         <el-form-item label="内容">
-          <el-input type="textarea" v-model="form.content.content" rows="4"></el-input>
+          <el-input type="textarea" v-model="form.content.content" :rows="4"></el-input>
         </el-form-item>
         
         <el-form-item label="类型">
