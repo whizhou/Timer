@@ -17,7 +17,7 @@
           <div class="user-avatar">用户</div>
         </div>
         <div class="message-content">
-          <div v-if="message.schedule!=undefined" class="message-bubble">
+          <div v-if="checkSchedule(message.schedule)" class="message-bubble">
             <el-card>
               <template #header>
                 <div class="card-header">
@@ -94,6 +94,12 @@ export default {
     this.scrollToBottom();
   },
   methods: {
+    checkSchedule (schedule) {
+      if (schedule==undefined) return false;
+      // if (schedule.id==undefined) return false;
+      // if (schedule.content.title==undefined) return false;
+      return true;
+    },
     deleteCards (message) {
       DeleteSchedule(message.schedule.id);
       message.schedule=undefined;
