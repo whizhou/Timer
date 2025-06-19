@@ -146,16 +146,17 @@ export default {
       
        try { 
           await SyncFromServer();
-          console.log(-1);
+          // console.log(-1);
           const retValue = await AddSchedule({
             content: filteredContent
           });
-          console.log(1);
+          // console.log(1);
           await DeleteSchedule(this.OriginId);
           console.log(2);
           ElMessage.success("日程修改成功")
           this.Visible = false
-          this.$emit('change', retValue);
+          console.log(retValue);
+          this.$emit('change', cloneDeep(retValue));
         } catch (error) {
           ElMessage.error("操作失败: " + error.message);
       }

@@ -7,7 +7,7 @@
     >
       <template #header>
         <div class="card-header">
-          <span v-if="card.content!=undefined"><b>{{ card.content.title }}<span v-if="card.stauts">(Done)</span></b></span>
+          <span v-if="card.content!=undefined"><b>{{ card.content.title }}<span v-if="card.stauts==true">(Done)</span></b></span>
           <span v-else><b>无题</b></span>
           <edit-schedule :origin="card"></edit-schedule>
           <el-button 
@@ -41,7 +41,7 @@
 <script setup>
 import globalStore from '@/utils/GlobalStore';
 import Trans from '@/utils/Trans';
-import { DeleteSchedule,GetScheduleIndex } from '../utils/DataManager';
+import { DeleteSchedule,GetScheduleIndex,PutDataToServer } from '../utils/DataManager';
 import EditSchedule from './EditSchedule.vue';
 
 import { ref, watch } from 'vue';
@@ -57,15 +57,17 @@ const deleteCards = (id) => {
   DeleteSchedule(id);
 };
 
-const done = (card) => {
-  let index = GetScheduleIndex(card.id);
-  if (globalStore.UserSchedules[index].status!=true) {
-    globalStore.UserSchedules[index].status=true;
-    card.stauts=true;
-  } else {
-    globalStore.UserSchedules[index].status=false;
-    card.stauts=false;
-  }
+async function done (card) {
+    const index =GetScheduleIndex(card.id);
+    if (globalStore.UserSchedules[index].status!=true) {
+      globalStore.UserSchedules[index].status=true;
+      card.stauts=true;
+      await PutDataToServer('http://127.0.0.1:5000/'+"schedule/"+String(card.id),card)
+    } else {
+      globalStore.UserSchedules[index].status=false;
+      card.stauts=false;
+      await PutDataToServer('http://127.0.0.1:5000/'+"schedule/"+String(card.id),card)
+    }
 };
 
 </script>
