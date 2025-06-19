@@ -96,7 +96,7 @@ export default {
   methods: {
     checkSchedule (schedule) {
       if (schedule==undefined) return false;
-      // if (schedule.id==undefined) return false;
+      if (schedule.id==undefined) return false;
       // if (schedule.content.title==undefined) return false;
       return true;
     },
