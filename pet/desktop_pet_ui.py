@@ -25,7 +25,8 @@ class DesktopPetUI(QLabel):
     
     def __init__(self, frame_folder: str, 
                  target_width: int = PetConfig.DEFAULT_PET_WIDTH, 
-                 target_height: int = PetConfig.DEFAULT_PET_HEIGHT):
+                 target_height: int = PetConfig.DEFAULT_PET_HEIGHT,
+                 loop_once: bool = False):
         """
         初始化桌宠UI
         
@@ -33,6 +34,8 @@ class DesktopPetUI(QLabel):
             frame_folder: 动画帧文件夹路径
             target_width: 目标宽度
             target_height: 目标高度
+            loop_once: 是否只播放一轮
+
         """
         super().__init__(None, Qt.WindowStaysOnTopHint | Qt.FramelessWindowHint)
         
@@ -51,6 +54,7 @@ class DesktopPetUI(QLabel):
         self.frames = self._load_frames(self.frame_folder)
         self.current_frame_index = 0
         self.is_exit_animation = False
+        self.loop_once = loop_once
         
         # 窗口设置
         self.target_width = target_width
@@ -176,6 +180,16 @@ class DesktopPetUI(QLabel):
                 else:
                     # 继续播放下一帧
                     self.current_frame_index += 1
+            elif self.loop_once:
+                # 只播放一轮
+                if self.current_frame_index >= len(self.frames) - 1:
+                    print(f"单次动画播放完成: {self.frame_folder}")
+                    if hasattr(self, '_on_animation_finished') and callable(self._on_animation_finished):
+                        # self.animation_timer.stop()
+                        self._on_animation_finished()
+                    return
+                else:
+                    self.current_frame_index += 1
             else:
                 # 普通动画循环播放
                 self.current_frame_index = (self.current_frame_index + 1) % len(self.frames)
@@ -183,19 +197,22 @@ class DesktopPetUI(QLabel):
         except Exception as e:
             print(f"更新动画帧失败: {e}")
 
-    def set_animation_folder(self, folder_path: str):
+
+    def set_animation_folder(self, folder_path: str, loop_once: bool = False):
         """
         切换动画帧文件夹
         
         Args:
             folder_path: 新的动画文件夹路径
+            loop_once: 是否只播放一轮
         """
-        print(f"切换动画文件夹到: {folder_path}")
+        print(f"切换动画文件夹到: {folder_path}, loop_once={loop_once}")
         self.frame_folder = folder_path
         self.frames = self._load_frames(self.frame_folder)
         self.current_frame_index = 0
         self.is_exit_animation = False
         self._exit_animation_finished = False
+        self.loop_once = loop_once
 
     def _set_exit_animation_folder(self, folder_path: str):
         """

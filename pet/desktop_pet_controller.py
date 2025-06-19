@@ -51,6 +51,8 @@ class DesktopPetController:
         self.is_dragging = False
         self.current_mood = pet.get_mood_type()
         self.is_exiting = False
+        self.is_performing_idle_action = False  # 标记是否正在执行待机动作
+
         
         # 定时器和管理器
         self.update_interval = PetConfig.UPDATE_INTERVAL
@@ -59,6 +61,17 @@ class DesktopPetController:
         self.bubble_timer.timeout.connect(self.ui.hide_bubble_message)
         self.schedule_manager = ScheduleManager()
         
+
+        # 待机动作定时器
+        self.idle_action_timer = QTimer()
+        self.idle_action_timer.setSingleShot(True)
+        self.idle_action_timer.timeout.connect(self._trigger_idle_action)
+        
+        # 待机动作恢复定时器
+        self.idle_recovery_timer = QTimer()
+        self.idle_recovery_timer.setSingleShot(True)
+        self.idle_recovery_timer.timeout.connect(self._recover_from_idle_action)
+
         # 消息管理
         self.msg_bubble = Msg()
         self._init_click_messages()
@@ -71,6 +84,9 @@ class DesktopPetController:
         
         # 设置默认悬停消息
         self._update_hover_message()
+        
+        # 启动待机动作定时器
+        self._start_idle_action_timer()
 
     def _init_click_messages(self):
         """初始化不同心情下的点击消息"""
@@ -306,6 +322,14 @@ class DesktopPetController:
         self.is_dragging = True
         self.pet.set_dragging_state(True)
         
+
+        # 停止待机动作相关定时器
+        if hasattr(self, 'idle_action_timer'):
+            self.idle_action_timer.stop()
+        if hasattr(self, 'idle_recovery_timer'):
+            self.idle_recovery_timer.stop()
+        self.is_performing_idle_action = False
+        
         # 切换到拖拽动画
         drag_animation_path = PetConfig.get_animation_path(
             self.pet.get_id(),
@@ -332,6 +356,10 @@ class DesktopPetController:
         # 恢复默认动画
         self._load_default_animation(self.pet.get_mood_type())
         
+
+        # 重新启动待机动作定时器
+        self._restart_idle_action_timer()
+        
         self.ui.show_bubble_message("放开我了~", self.pet.get_mood_type())
 
     def start_chat(self):
@@ -339,6 +367,14 @@ class DesktopPetController:
         print("开始聊天")
         self.pet.set_chatting_state(True)
         
+
+        # 停止待机动作相关定时器
+        if hasattr(self, 'idle_action_timer'):
+            self.idle_action_timer.stop()
+        if hasattr(self, 'idle_recovery_timer'):
+            self.idle_recovery_timer.stop()
+        self.is_performing_idle_action = False
+
         # 切换到聊天动画
         chat_animation_path = PetConfig.get_animation_path(
             self.pet.get_id(),
@@ -356,6 +392,9 @@ class DesktopPetController:
         
         # 恢复默认动画
         self._load_default_animation(self.pet.get_mood_type())
+        
+        # 重新启动待机动作定时器
+        self._restart_idle_action_timer()
 
     def start_exit(self):
         """开始退出流程"""
@@ -371,6 +410,10 @@ class DesktopPetController:
         # 停止更新线程和定时器
         if hasattr(self, 'bubble_timer'):
             self.bubble_timer.stop()
+        if hasattr(self, 'idle_action_timer'):
+            self.idle_action_timer.stop()
+        if hasattr(self, 'idle_recovery_timer'):
+            self.idle_recovery_timer.stop()
         
         # 显示退出消息
         self.ui.show_bubble_message("再见了，我们下次再见吧！", self.pet.get_mood_type())
@@ -440,4 +483,107 @@ class DesktopPetController:
         self.is_exiting = True
         if hasattr(self, 'bubble_timer'):
             self.bubble_timer.stop()
+        if hasattr(self, 'idle_action_timer'):
+            self.idle_action_timer.stop()
+        if hasattr(self, 'idle_recovery_timer'):
+            self.idle_recovery_timer.stop()
         print("控制器已关闭")
+
+    def _start_idle_action_timer(self):
+        """启动待机动作定时器"""
+        interval_ms = PetConfig.get_idle_action_interval() * 1000  # 转换为毫秒
+        self.idle_action_timer.start(interval_ms)
+        print(f"待机动作定时器已启动，间隔: {PetConfig.get_idle_action_interval()}秒")
+
+    def _trigger_idle_action(self):
+        """触发待机动作"""
+        if self.is_dragging or self.pet.is_in_chatting_state() or self.is_exiting:
+            self._restart_idle_action_timer()
+            return
+        print("触发待机动作")
+        self.is_performing_idle_action = True
+        idle_actions = PetConfig.IdleActionType.get_all_idle_actions()
+        available_actions = []
+        for action in idle_actions:
+            animation_path = PetConfig.get_animation_path(
+                self.pet.get_id(),
+                action,
+                self.current_mood
+            )
+            if os.path.exists(animation_path):
+                available_actions.append(action)
+                print(f"可用待机动作: {action} - {animation_path}")
+        if available_actions:
+            selected_action = random.choice(available_actions)
+            print(f"执行待机动作: {selected_action}")
+            animation_path = PetConfig.get_animation_path(
+                self.pet.get_id(),
+                selected_action,
+                self.current_mood
+            )
+            # 设置动画播放完回调
+            def on_idle_action_finished():
+                print("待机动作动画播放完毕，恢复默认动画")
+                self.is_performing_idle_action = False
+                self._load_default_animation(self.current_mood)
+                self._restart_idle_action_timer()
+            self.ui._on_animation_finished = on_idle_action_finished
+            self.ui.set_animation_folder(animation_path, loop_once=True)
+            idle_message = self._get_idle_action_message(selected_action)
+            if idle_message:
+                pet_position = self.pet.get_position()
+                self.msg_bubble.show_above_pet(idle_message, pet_position, self.current_mood)
+        else:
+            print("没有可用的待机动作动画")
+            self.is_performing_idle_action = False
+            self._restart_idle_action_timer()
+
+    def _recover_from_idle_action(self):
+        """从待机动作恢复"""
+        print("从待机动作恢复到默认状态")
+        self.is_performing_idle_action = False
+        
+        # 恢复到默认站立动画
+        self._load_default_animation(self.current_mood)
+        
+        # 重新启动待机动作定时器
+        self._restart_idle_action_timer()
+
+    def _restart_idle_action_timer(self):
+        """重新启动待机动作定时器"""
+        if not self.is_exiting:
+            interval_ms = PetConfig.get_idle_action_interval() * 1000
+            self.idle_action_timer.start(interval_ms)
+
+    def _get_idle_action_message(self, action: str) -> str:
+        """根据待机动作获取对应的消息"""
+        action_messages = {
+            PetConfig.IdleActionType.FINISH_WORK: [
+                "终于完成了！",
+                "工作结束~",
+                "任务完成！"
+            ],
+            PetConfig.IdleActionType.THINK: [
+                "让我想想...",
+                "思考中...",
+                "嗯...有点想法了"
+            ],
+            PetConfig.IdleActionType.HUNGER: [
+                "有点饿了...",
+                "该吃点什么呢？",
+                "肚子饿了~"
+            ],
+            PetConfig.IdleActionType.STUDY: [
+                "学习时间！",
+                "努力学习中...",
+                "知识就是力量！"
+            ],
+            PetConfig.IdleActionType.WALK: [
+                "出去走走~",
+                "散步时间！",
+                "活动一下身体"
+            ]
+        }
+        
+        messages = action_messages.get(action, [])
+        return random.choice(messages) if messages else None
