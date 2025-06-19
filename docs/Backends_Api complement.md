@@ -126,7 +126,28 @@
             }
 ```
 
-### 4. 通用对话响应
+### 4. 特定意图相应（INQUERY）
+
+```python
+        return{
+            "status": "success",
+            "action": "inquery",
+            "schedule_list": schedule_list, # 查询到的日程数组（List[Dict])
+        }
+
+```
+
+```python
+        if "error" in inquery_result:
+            return {
+                "status": "error",
+                "action": "delete",
+                "error": inquery_result["error"]
+                # 返回可能的str类型的错误信息
+            }
+```
+
+### 5. 通用对话响应
 
 返回自然语言字符串（str类型）：
 
@@ -150,6 +171,7 @@ return "我无法处理您的请求，请稍后再试。"
 | `CREATE` | 1. 生成创建提示词. 调用LLM解析. 写入数据库 | "下周一下午3点安排体检" |
 | `MODIFY` | 1. 检索现有日程. 生成差异提示. 执行更新 | "把会议改到明天早上" |
 | `DELETE` | 1. 识别目标日程. 确认删除 | "取消本周所有会议" |
+| `INQUERY` | 1. 识别查询条件，返回对应日程，如果没有条件则返回最近的至多三个日程 | "查询一下我明天的安排"
 | `GENERAL` | 1. 语义分析. 生成自然回复 | "我下周有什么安排？" |
 
 ---
