@@ -13,7 +13,13 @@ class PetConfig:
     
     # 动画相关配置
     ANIMATION_FRAME_INTERVAL = 100  # 动画帧间隔(毫秒)
-    UPDATE_INTERVAL = 5  # 动画更新检查间隔(秒)
+    UPDATE_INTERVAL = 70  # 动画更新检查间隔(秒)
+    
+    # 待机动作相关配置
+    IDLE_ACTION_INTERVAL = 3  # 待机动作触发间隔(秒)
+    IDLE_ACTION_DURATION = 3000  # 待机动作持续时间(毫秒)
+    IDLE_ACTION_MIN_INTERVAL = 15  # 最小待机动作间隔(秒)
+    IDLE_ACTION_MAX_INTERVAL = 60  # 最大待机动作间隔(秒)
     
     # UI相关配置
     DEFAULT_PET_WIDTH = 300
@@ -41,6 +47,27 @@ class PetConfig:
         FINISH_WORK = "finish_work"
         SHUTDOWN = "shutdown"  # 退出动画，与finish_work相同
         HUNGER = "hunger"
+        THINK = "think"  # 思考动作
+    
+    # 待机动作类型列表
+    class IdleActionType:
+        """待机动作类型"""
+        FINISH_WORK = "finish_work"  # 完成工作
+        THINK = "think"  # 思考
+        HUNGER = "hunger"  # 饥饿
+        STUDY = "study"  # 学习
+        WALK = "walk"  # 散步
+        
+        @classmethod
+        def get_all_idle_actions(cls):
+            """获取所有待机动作类型"""
+            return [
+                cls.FINISH_WORK,
+                cls.THINK,
+                cls.HUNGER,
+                cls.STUDY,
+                cls.WALK
+            ]
     
     # 心情类型
     class MoodType:
@@ -67,4 +94,24 @@ class PetConfig:
     @classmethod
     def get_resource_path(cls, relative_path):
         """获取资源的正确路径"""
-        return os.path.join(cls.PROJECT_ROOT, relative_path.lstrip('/')) 
+        return os.path.join(cls.PROJECT_ROOT, relative_path.lstrip('/'))
+    
+    @classmethod 
+    def get_idle_action_interval(cls):
+        """获取待机动作间隔时间(秒)"""
+        return cls.IDLE_ACTION_INTERVAL
+    
+    @classmethod
+    def set_idle_action_interval(cls, interval):
+        """设置待机动作间隔时间(秒)"""
+        cls.IDLE_ACTION_INTERVAL = max(cls.IDLE_ACTION_MIN_INTERVAL, min(interval, cls.IDLE_ACTION_MAX_INTERVAL))
+    
+    @classmethod
+    def get_idle_action_duration(cls):
+        """获取待机动作持续时间(毫秒)"""
+        return cls.IDLE_ACTION_DURATION
+    
+    @classmethod
+    def set_idle_action_duration(cls, duration):
+        """设置待机动作持续时间(毫秒)"""
+        cls.IDLE_ACTION_DURATION = max(1000, min(duration, 10000))  # 限制在1-10秒之间 
