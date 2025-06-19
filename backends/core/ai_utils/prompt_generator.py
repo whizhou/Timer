@@ -6,6 +6,38 @@ from typing import Dict, Optional, List
     
 class PromptGenerator:
     """提示词生成器，专注于为日程管理生成各类系统提示词"""
+
+    def _generate_analyse_prompt(
+        cls, 
+        existing_schedules: Optional[List[Dict]] = None
+    ) -> str:
+        """生成语义分析提示词"""
+        existing_schedules_text = ""
+        if existing_schedules:
+            existing_schedules_text = dedent(f"""
+                ## 已有日程\n当前已有日程如下：
+                ```json\n{json.dumps(existing_schedules, indent=2, ensure_ascii=False)}\n```
+            """).strip()
+
+        today = datetime.now().strftime("%Y-%m-%d")
+
+        return dedent(f"""
+            ## 已有日程
+            {existing_schedules_text}
+
+            请分析用户最新输入的隐含意图，判断是否属于创建、修改、删除或查询操作：
+
+            
+            ## 请从以下选项中选择最匹配的意图类型：
+            1. CREATE - 如果用户意图是创建或添加新内容，或者说是用户将要在某时间做什么。
+            2. MODIFY - 如果用户意图是修改或更新现有内容，对于已有日程的部分内容的添加减少也属于修改意图
+            3. DELETE - 如果用户意图是删除或移除内容，或者用户不再需要做什么
+            4. INQUERY - 如果用户意图是查询某个日程，或者获取最近的日程列表
+            5. GENERAL - 如果不属于以上任何一类
+            
+            只需返回上述大写关键词，不要包含其他内容。
+        """).strip()
+
     def _generate_system_prompt(
         cls, 
         existing_schedules: Optional[List[Dict]] = None
@@ -305,6 +337,84 @@ class PromptGenerator:
         inquery_rules = dedent("""
             ## 查询规则
             0. 如果用户没有说明任何查询条件，默认返回时间最近的至多3个未归档日程。
+            1. 否则你的任务是根据用户输入，在已有日程列表中查找匹配度比较高的日程，并返回匹配日程的完整日志json。
+            2. 匹配优先级如下（按顺序）：
+                a. 时间范围匹配（如“查询明天的日程”）
+                b. 标题完全匹配（如“查询‘XXX’日程”）
+                c. 标题部分匹配（如“上一个日程”“刚才的日程”“查询人工智能考试”）
+                d. 内容部分匹配（如“查询交作业的提醒”）
+                e. id完全匹配（如用户直接说“查询id为X的日程”）
+                f. 如果用户说“上一个日程”“刚才的日程”，请选取时间最接近当前时间且未归档的日程。
+            3. 返回的完整日程项必须严格从已有日程列表中选取，不能凭空生成。
+            4. 返回格式如下：
+            ```json
+            {
+                "schedule_list": [
+                     {
+                        "id": "123",
+                        "timestamp": "2025-06-19 10:00:00",
+                        "type": "schedule",
+                        "AI_readable": true,
+                        "content": {
+                            "title": "小组会议",
+                            "content": "讨论项目进度",
+                            "whole_day": false,
+                            "begin_time": ["2023-10-15", "14:00:00"],
+                            "end_time": ["2023-10-15", "15:00:00"],
+                            "location": "会议室A",
+                            "remind_start": ["2023-10-15", "08:00:00"],
+                            "remind_before": 120,
+                            "tag": "work",
+                            "repeat": {
+                                "repeat": false
+                            },
+                            "additional_info": [],
+                            "archive": false
+                        }
+                    },
+                    {
+                        "id": "234",
+                        "timestamp": "2024-10-16 10:00:00",
+                        "type": "schedule",
+                        "AI_readable": true,
+                        "content": {
+                            "title": "数值分析作业",
+                            "content": "",
+                            "whole_day": false,
+                            "begin_time": ["2024-10-19", "08:00:00"],
+                            "end_time": ["2024-10-19", "20:00:00"],
+                            "location": "",
+                            "remind_start": ["2024-10-19", "08:00:00"],
+                            "remind_before": 120,
+                            "tag": "default",
+                            "repeat": {
+                                "repeat": false
+                            },
+                            "additional_info": [],
+                            "archive": false
+                        }
+                    },
+                ]
+            }
+            ```
+            5. 只返回JSON格式结果，不要解释。
+        """).strip()
+        
+        return f"{base_prompt}\n\n{inquery_rules}"
+    
+    def _parse_inquery(
+        self,
+        existing_schedules: Optional[List[Dict]] = None
+    ) -> str:
+        """生成查询日程的专用提示词"""
+        if not existing_schedules:
+            raise ValueError("查询日程必须提供已有日程列表")
+            
+        base_prompt = self._generate_system_prompt(existing_schedules)
+        
+        inquery_rules = dedent("""
+            ## 查询规则
+            0. 如果用户没有说明任何查询条件，默认返回时间最近的3个未归档日程。
             1. 否则你的任务是根据用户输入，在已有日程列表中查找匹配度比较高的日程，并返回匹配日程的完整日志json。
             2. 匹配优先级如下（按顺序）：
                 a. 时间范围匹配（如“查询明天的日程”）
