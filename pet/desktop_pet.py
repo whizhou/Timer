@@ -32,9 +32,7 @@ class DesktopPet:
         self.is_dragging = False
         self.is_chatting = False
         self.is_exiting = False
-
         self.is_performing_idle_action = False  # 是否正在执行待机动作
-
         
         # 统计数据
         self.stats = {
@@ -126,7 +124,6 @@ class DesktopPet:
     def is_in_exiting_state(self) -> bool:
         """是否处于退出状态"""
         return self.is_exiting
-
     
     def set_idle_action_state(self, is_performing: bool):
         """设置待机动作状态"""

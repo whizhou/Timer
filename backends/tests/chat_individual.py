@@ -31,5 +31,19 @@ def test_independent_requests():
     print("Response 3:", response3.json())
     print(f"Session ID from Response 3: {response3.cookies.get('session')}")
 
+def test_pet_routes():
+    for i in range(3):
+        response = requests.get(
+            f"{BASE_URL}/schedule/titles/{i}",
+        )
+        print(f"Response for schedule/titles/{i}:\n", response.json())
+
+        response = requests.get(
+            f"{BASE_URL}/schedule/quantity/{i}",
+        )
+        print(f"Response for schedule/quantity/{i}:\n", response.json())
+
 if __name__ == "__main__":
-    test_independent_requests()
+    # test_independent_requests()
+
+    test_pet_routes()
