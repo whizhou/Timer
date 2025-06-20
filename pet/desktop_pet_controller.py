@@ -47,6 +47,7 @@ class DesktopPetController:
         self.current_mood = pet.get_mood_type()
         self.is_exiting = False
         self.is_performing_idle_action = False  # 标记是否正在执行待机动作
+
         
         # 定时器和管理器
         self.update_interval = PetConfig.UPDATE_INTERVAL
@@ -55,6 +56,7 @@ class DesktopPetController:
         self.bubble_timer.timeout.connect(self.ui.hide_bubble_message)
         self.schedule_manager = ScheduleManager()
         
+
         # 待机动作定时器
         self.idle_action_timer = QTimer()
         self.idle_action_timer.setSingleShot(True)
@@ -64,7 +66,7 @@ class DesktopPetController:
         self.idle_recovery_timer = QTimer()
         self.idle_recovery_timer.setSingleShot(True)
         self.idle_recovery_timer.timeout.connect(self._recover_from_idle_action)
-        
+
         # 消息管理
         self.msg_bubble = Msg()
         self._init_click_messages()
@@ -315,6 +317,7 @@ class DesktopPetController:
         self.is_dragging = True
         self.pet.set_dragging_state(True)
         
+
         # 停止待机动作相关定时器
         if hasattr(self, 'idle_action_timer'):
             self.idle_action_timer.stop()
@@ -348,6 +351,7 @@ class DesktopPetController:
         # 恢复默认动画
         self._load_default_animation(self.pet.get_mood_type())
         
+
         # 重新启动待机动作定时器
         self._restart_idle_action_timer()
         
@@ -358,13 +362,14 @@ class DesktopPetController:
         print("开始聊天")
         self.pet.set_chatting_state(True)
         
+
         # 停止待机动作相关定时器
         if hasattr(self, 'idle_action_timer'):
             self.idle_action_timer.stop()
         if hasattr(self, 'idle_recovery_timer'):
             self.idle_recovery_timer.stop()
         self.is_performing_idle_action = False
-        
+
         # 切换到聊天动画
         chat_animation_path = PetConfig.get_animation_path(
             self.pet.get_id(),
@@ -577,3 +582,26 @@ class DesktopPetController:
         
         messages = action_messages.get(action, [])
         return random.choice(messages) if messages else None
+
+    def play_study_with_me_animation(self):
+        """先播放A目录一次，播放完后循环播放B目录"""
+        pet_id = self.pet.get_id()
+        mood = self.pet.get_mood_type()
+        # 兼容多心情/多目录，直接用绝对路径
+        a_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),
+            f'static/charactor/{pet_id}/study/A'
+        )
+        b_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),
+            f'static/charactor/{pet_id}/study/B'
+        )
+        if not os.path.exists(a_path) or not os.path.exists(b_path):
+            print(f"学习动画目录不存在: {a_path} 或 {b_path}")
+            return
+        def play_b():
+            print("A动画播放完毕，开始循环B动画")
+            self.ui.set_animation_folder(b_path, loop_once=False)
+        self.ui._on_animation_finished = play_b
+        print("开始播放A动画（单次）")
+        self.ui.set_animation_folder(a_path, loop_once=True)
