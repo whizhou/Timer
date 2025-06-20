@@ -20,6 +20,7 @@ class PetConfig:
     IDLE_ACTION_DURATION = 3000  # 待机动作持续时间(毫秒)
     IDLE_ACTION_MIN_INTERVAL = 15  # 最小待机动作间隔(秒)
     IDLE_ACTION_MAX_INTERVAL = 60  # 最大待机动作间隔(秒)
+
     
     # UI相关配置
     DEFAULT_PET_WIDTH = 300
@@ -68,6 +69,7 @@ class PetConfig:
                 cls.STUDY,
                 cls.WALK
             ]
+
     
     # 心情类型
     class MoodType:
@@ -94,6 +96,7 @@ class PetConfig:
     @classmethod
     def get_resource_path(cls, relative_path):
         """获取资源的正确路径"""
+
         return os.path.join(cls.PROJECT_ROOT, relative_path.lstrip('/'))
     
     @classmethod 
@@ -115,3 +118,4 @@ class PetConfig:
     def set_idle_action_duration(cls, duration):
         """设置待机动作持续时间(毫秒)"""
         cls.IDLE_ACTION_DURATION = max(1000, min(duration, 10000))  # 限制在1-10秒之间 
+

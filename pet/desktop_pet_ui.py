@@ -35,6 +35,7 @@ class DesktopPetUI(QLabel):
             target_width: 目标宽度
             target_height: 目标高度
             loop_once: 是否只播放一轮
+
         """
         super().__init__(None, Qt.WindowStaysOnTopHint | Qt.FramelessWindowHint)
         
@@ -195,6 +196,7 @@ class DesktopPetUI(QLabel):
                 
         except Exception as e:
             print(f"更新动画帧失败: {e}")
+
 
     def set_animation_folder(self, folder_path: str, loop_once: bool = False):
         """
