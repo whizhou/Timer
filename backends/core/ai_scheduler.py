@@ -71,11 +71,16 @@ class AIScheduler(Scheduler):
 
         prompt_content = [
             {"role": "system", "content": f"{system_prompt}"},
-            *self.deepseek_chat.conversation_history,
-            {"role": "system", "content": f"{str(user_input)}"}
+            *self.deepseek_chat.get_recent_history(1),
+            {"role": "user", "content": f"{str(user_input)}"}
         ]
 
+        # for i, msg in enumerate(prompt_content):
+        #     if msg.get("role") == "user" :
+        #         print(f"{i}: {msg}")
+
         semantic_result = self.ai_schedule_manager._analyze_semantic_intent(prompt_content)
+        # print(semantic_result)
         
         # 第二步：根据意图类型获取对应的处理函数
         handler = self.intent_handlers.get(semantic_result)
@@ -228,6 +233,8 @@ class AIScheduler(Scheduler):
     
     def _handle_inquery_intent(self, user_input: Dict) :
         """处理查询日程的请求"""
+        print(f"the len of his: {len(self.deepseek_chat.conversation_history)}")
+
         all_schedules = self.get_schedules()
         system_prompt = self.prompt_generator._parse_inquery(all_schedules)
 
