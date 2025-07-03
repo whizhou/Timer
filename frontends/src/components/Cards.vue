@@ -7,19 +7,31 @@
     >
       <template #header>
         <div class="card-header">
-          <span><b>{{ card.content.title }}</b></span>
+          <span v-if="card.content!=undefined"><b>{{ card.content.title }}<span v-if="card.stauts==true">(Done)</span></b></span>
+          <span v-else><b>无题</b></span>
+          <edit-schedule :origin="card"></edit-schedule>
           <el-button 
             class="delete-btn" 
             type="text" 
             @click="deleteCards(card.id)"
           >删除</el-button>
+          <el-button 
+            class="delete-btn" 
+            type="text" 
+            @click="done(card)"
+          ><span v-if="card.status==true">取消完成</span><span v-else>完成</span></el-button>
         </div>
       </template>
       <div class="card-content">
         <div v-for="(value, key) in card.content">
-          <p v-if="key != 'title'">
-            <b>{{ key }} : </b>{{ value }}
-          </p>
+          <div v-if="key != 'title' && Trans[key]!=undefined && value != ''">
+            <p v-if="value.constructor==Array">
+              <b>{{ Trans[key] }} : </b>{{ value[0] }} {{ value[1] }}
+            </p>
+            <p v-else>
+              <b>{{ Trans[key] }} : </b>{{ value }}
+            </p>
+          </div>
         </div>
       </div>
     </el-card>
@@ -27,7 +39,11 @@
 </template>
 
 <script setup>
-import { DeleteSchedule } from '../utils/DataManager';
+import globalStore from '@/utils/GlobalStore';
+import Trans from '@/utils/Trans';
+import { DeleteSchedule,GetScheduleIndex,PutDataToServer } from '../utils/DataManager';
+import EditSchedule from './EditSchedule.vue';
+
 import { ref, watch } from 'vue';
 
 const props = defineProps({
@@ -39,6 +55,19 @@ const props = defineProps({
 
 const deleteCards = (id) => {
   DeleteSchedule(id);
+};
+
+async function done (card) {
+    const index =GetScheduleIndex(card.id);
+    if (globalStore.UserSchedules[index].status!=true) {
+      globalStore.UserSchedules[index].status=true;
+      card.stauts=true;
+      await PutDataToServer('http://127.0.0.1:5000/'+"schedule/"+String(card.id),card)
+    } else {
+      globalStore.UserSchedules[index].status=false;
+      card.stauts=false;
+      await PutDataToServer('http://127.0.0.1:5000/'+"schedule/"+String(card.id),card)
+    }
 };
 
 </script>

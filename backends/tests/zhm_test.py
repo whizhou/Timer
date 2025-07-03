@@ -16,7 +16,8 @@ from flask import Flask
 from flask_session import Session
 from config.config import DevelopmentConfig
 from core.core import scheduler
-from core.ai_scheduler2 import AIScheduler
+# from core.ai_scheduler import AIScheduler
+from core.ai_scheduler import AIScheduler
 from core.scheduler import Scheduler  # 新增导入
 
 # 测试数据
@@ -67,7 +68,7 @@ def demonstrate_usage():
     ai_scheduler = AIScheduler(app)
     
     # 注入测试数据，避免空日程导致 ValueError
-    ai_scheduler.scheduler.create_schedule(copy.deepcopy(existing_schedules)) 
+    ai_scheduler.create_schedule(copy.deepcopy(existing_schedules)) 
     
     # 测试用例
     test_cases = [

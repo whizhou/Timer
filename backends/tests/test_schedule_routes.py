@@ -138,7 +138,16 @@ def test_sync_schedules(client):
     assert response.status_code == 200    
     assert response.json == {'schedules': test_schedules}
     
+def test_pet_routes(client):
+    """Test GET /tomorrow/<id>/titles and /quantity routes"""
+    for i in range(3):
+        response_titles = client.get(f"/schedule/titles/{i}")
+        assert response_titles.status_code == 200
+        assert isinstance(response_titles.json(), dict)
 
+        response_quantity = client.get(f"/schedule/quantity/{i}")
+        assert response_quantity.status_code == 200
+        assert isinstance(response_quantity.json(), dict)
 
 '''
 def test_invalid_method(client):

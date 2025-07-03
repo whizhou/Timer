@@ -17,8 +17,37 @@
           <div class="user-avatar">用户</div>
         </div>
         <div class="message-content">
+          <div v-if="checkSchedule(message.schedule)" class="message-bubble">
+            <el-card>
+              <template #header>
+                <div class="card-header">
+                <span v-if="message.schedule.content!=undefined"><b>{{ message.schedule.content.title }}</b></span>
+                <span v-else><b>无题</b></span>
+                   <edit-schedule :origin="message.schedule" @change="(newSchedule)=>message.schedule=newSchedule"></edit-schedule>
+                  <el-button 
+                    class="delete-btn" 
+                    type="text" 
+                    @click="deleteCards(message)"
+                  >删除</el-button>
+                </div>
+              </template>
+              <div class="card-content">
+                <div v-for="(value, key) in message.schedule.content">
+                  <div v-if="key != 'title' && Trans[key]!=undefined && value != ''">
+                    <p v-if="value.constructor==Array">
+                      <b>{{ Trans[key] }} : </b>{{ value[0] }} {{ value[1] }}
+                    </p>
+                    <p v-else>
+                      <b>{{ Trans[key] }} : </b>{{ value }}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </el-card>
+
+          </div>
           <div class="message-bubble">
-            <span v-if="!message.loading">{{ message.text }}</span>
+            <span v-if="!message.loading"><v-md-preview :text="message.text"></v-md-preview></span>
             <span v-else class="loading-dots">
               {{ message.text }}
               <span class="dot">.</span>
@@ -33,8 +62,25 @@
 </template>
 
 <script>
+
+import { DeleteSchedule } from '../utils/DataManager';
+import EditSchedule from './EditSchedule.vue';
+import Trans from "../utils/Trans.js"
+import { cloneDeep } from 'lodash';
+import { GetSchedule } from '../utils/DataManager';
+import globalStore from '@/utils/GlobalStore';
+
 export default {
   name: "ChatBox",
+  data () {
+    return {
+      Trans
+    }
+  },
+  components : {
+    EditSchedule,
+    GetSchedule,
+  },
   props: {
     messages: {
       type: Array,
@@ -48,6 +94,16 @@ export default {
     this.scrollToBottom();
   },
   methods: {
+    checkSchedule (schedule) {
+      if (schedule==undefined) return false;
+      if (schedule.id==undefined) return false;
+      // if (schedule.content.title==undefined) return false;
+      return true;
+    },
+    deleteCards (message) {
+      DeleteSchedule(message.schedule.id);
+      message.schedule=undefined;
+    },
     scrollToBottom() {
       this.$nextTick(() => {
         const container = this.$refs.chatContainer;
@@ -214,4 +270,22 @@ export default {
     opacity: 0;
   }
 }
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0; /* 防止头部被压缩 */
+}
+
+.delete-btn {
+  padding: 0;
+  margin: 0;
+}
+
+.card-content {
+  height: auto; /* 内容高度自适应 */
+  overflow: hidden; /* 防止内容溢出 */
+}
+
 </style>

@@ -2,12 +2,6 @@
   <div class="chat-page">
     <el-container>
       <el-aside width="240px" class="sidebar">
-        <div class="sidebar-header">
-          <div class="app-logo">
-            <img src="https://www.deepseek.com/favicon.ico" alt="Logo" />
-            <h2>Timer</h2>
-          </div>
-        </div>
         <leftbar></leftbar>
       </el-aside>
 
@@ -151,6 +145,8 @@ import ChattingBox from "../components/ChattingBox.vue";
 import { cloneDeep } from "lodash";
 import axios from "axios";
 import Tesseract from "tesseract.js";
+import globalStore from "@/utils/GlobalStore";
+import { SyncFromServer } from "@/utils/DataManager";
 
 export default {
   components: {
@@ -416,10 +412,10 @@ export default {
       this.scrollToBottom();
 
       // 检查是否包含日程关键词，如果有则尝试处理日程相关命令
-      if (this.isScheduleRelatedQuery(addms)) {
-        await this.handleScheduleQuery(addms);
-        return;
-      }
+      // if (this.isScheduleRelatedQuery(addms)) {
+      //   await this.handleScheduleQuery(addms);
+      //   return;
+      // }
 
       try {
         // 显示加载状态
@@ -457,7 +453,10 @@ export default {
         this.messages.pop();
 
         // 添加AI回复
-        this.messages.push({ text: data.response, align: "left" });
+        console.log(data);
+        if (data.schedule==undefined)
+          this.messages.push({ text: data.response, align: "left" });
+        else this.messages.push({ text: data.response, align: "left", schedule: data.schedule });
 
         // 保存会话ID
         if (data.session_id) {
@@ -567,14 +566,10 @@ export default {
     // 获取所有日程
     async fetchSchedules() {
       try {
-        const response = await axios.get("/schedule/");
-        this.schedules = response.data.schedules;
-      } catch (error) {
-        console.error("获取日程失败:", error);
-        this.messages.push({
-          text: "抱歉，获取日程失败，请检查网络连接。",
-          align: "left",
-        });
+        await SyncFromServer()
+        this.schedules = cloneDeep(globalStore.UserSchedules);
+      } catch {
+        console.log("error!");
       }
     },
 
@@ -590,14 +585,15 @@ export default {
 
       let scheduleText = "以下是您的所有日程安排：\n\n";
       this.schedules.forEach((schedule, index) => {
-        scheduleText += `${index + 1}. ${schedule.title}\n`;
+        scheduleText += `${index + 1}. ${schedule.content.title}\n`;
         scheduleText += `   开始时间: ${this.formatDateTime(
-          schedule.start_time
+          schedule.content.begin_time
         )}\n`;
         scheduleText += `   结束时间: ${this.formatDateTime(
-          schedule.end_time
+          schedule.content.end_time
         )}\n`;
-        scheduleText += `   状态: ${this.getStatusText(schedule.status)}\n\n`;
+        scheduleText += `   内容: ${schedule.content.content==""?"无":schedule.content.content}\n`;
+        scheduleText += `   状态: ${this.getStatusText(schedule.status?"finished":"running")}\n\n`;
       });
 
       this.messages.push({
