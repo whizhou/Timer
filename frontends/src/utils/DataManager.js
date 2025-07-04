@@ -65,6 +65,7 @@ function GetDataFromServer (TargetURL) {
     return axios({
         method : 'get',
         url : TargetURL,
+        withCredentials : true,
     }).then((res)=>{
         return res;
     }).catch(()=>{
@@ -77,7 +78,8 @@ function PostDataToServer (TargetURL,DATA) {
     return axios({
         method : 'post',
         url : TargetURL,
-        data : DATA
+        data : DATA,
+        withCredentials : true,
     }).then((res)=>{
         return res;
     }).catch(()=>{
@@ -89,7 +91,8 @@ function PutDataToServer (TargetURL,DATA) {
     return axios({
         method : 'put',
         url : TargetURL,
-        data : { schedule : DATA }
+        data : { schedule : DATA },
+        withCredentials : true,
     }).then((res)=>{
         return res;
     }).catch(()=>{
@@ -100,7 +103,8 @@ function PutDataToServer (TargetURL,DATA) {
 function DeleteFromServer (TargetURL) {
     return axios({
         method : 'delete',
-        url : TargetURL
+        url : TargetURL,
+        withCredentials : true,
     }).then((res)=>{
         return res;
     })
@@ -110,6 +114,7 @@ function SyncFromServer() {
   return axios({
     method: 'get',
     url: serverURL + "schedule/",
+    withCredentials : true,
   }).then((res) => {
     globalStore.UserSchedules = res.data.schedules;
     console.log(globalStore.UserSchedules);
@@ -118,6 +123,11 @@ function SyncFromServer() {
     throw error; 
   });
 }
+ 
+// function ModifyServerURL (URL){
+//     serverURL=URL;
+//     return;
+// }
 
 export {
     AddSchedule,
@@ -130,4 +140,5 @@ export {
     DeleteFromServer,
     SyncFromServer,
     serverURL,
+    // ModifyServerURL,
 }

@@ -13,7 +13,7 @@
             <el-icon><Monitor /></el-icon>
             <span>仪表盘</span>
           </el-menu-item>
-          <el-menu-item index="/" @click="Sync()">
+          <el-menu-item index="/home" @click="Sync()">
             <el-icon><Document /></el-icon>
             <span>日程</span>
           </el-menu-item>

@@ -10,7 +10,10 @@ def create_app(cfg=DevelopmentConfig):
     app = Flask(__name__)
     app.config.from_object(cfg())
 
-    CORS(app, supports_credentials=True)  # 启用跨域资源共享
+    CORS(app, supports_credentials=True,
+         resources={r"/*":{
+             "origins":["http://localhost:5173"]
+         }})  # 启用跨域资源共享
 
     Session(app)  # 初始化会话扩展
 
