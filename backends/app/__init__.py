@@ -26,8 +26,8 @@ def create_app(cfg=DevelopmentConfig):
 
     # 注册蓝图
     from routes import chat_routes, schedule_routes, auth_routes
+    app.register_blueprint(auth_routes.bp)
     app.register_blueprint(schedule_routes.bp)
     app.register_blueprint(chat_routes.bp)
-    app.register_blueprint(auth_routes.bp)
 
     return app

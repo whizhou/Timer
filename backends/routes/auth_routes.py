@@ -10,6 +10,7 @@ bp = Blueprint('auth', __name__, url_prefix='/auth')
 def load_logged_in_user():
     """Load the logged-in user from the session."""
     user_id = session.get('user_id', None)
+    print(f"User ID from session: {user_id}")
     
     if user_id is not None:
         from core.core import scheduler
