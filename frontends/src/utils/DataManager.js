@@ -5,6 +5,10 @@ import globalStore from "./GlobalStore"
 const serverURL = 'http://127.0.0.1:5000/';
 
 async function AddSchedule(data) {
+    if (data.finished == undefined)
+        data.finished = false;
+    if (data.archieve == undefined)
+        data.archieve = false;
     const maxId = globalStore.UserSchedules.reduce((max, item) => 
         Math.max(max, item.id), 0);
     const newId = maxId + 1;
@@ -65,7 +69,8 @@ function GetDataFromServer (TargetURL) {
     return axios({
         method : 'get',
         url : TargetURL,
-        withCredentials : true,
+        data : { user_id : globalStore.UserID },
+        // withCredentials : true,
     }).then((res)=>{
         return res;
     }).catch(()=>{
@@ -75,10 +80,11 @@ function GetDataFromServer (TargetURL) {
 }
 
 function PostDataToServer (TargetURL,DATA) {
+    console.log(globalStore.UserID);
     return axios({
         method : 'post',
         url : TargetURL,
-        data : DATA,
+        data : { ...DATA, user_id : globalStore.UserID },
         withCredentials : true,
     }).then((res)=>{
         return res;
@@ -91,7 +97,7 @@ function PutDataToServer (TargetURL,DATA) {
     return axios({
         method : 'put',
         url : TargetURL,
-        data : { schedule : DATA },
+        data : { schedule : DATA , user_id : globalStore.UserID },
         withCredentials : true,
     }).then((res)=>{
         return res;
@@ -104,6 +110,7 @@ function DeleteFromServer (TargetURL) {
     return axios({
         method : 'delete',
         url : TargetURL,
+        data : { user_id : globalStore.UserID },
         withCredentials : true,
     }).then((res)=>{
         return res;
@@ -114,6 +121,7 @@ function SyncFromServer() {
   return axios({
     method: 'get',
     url: serverURL + "schedule/",
+    data : { user_id : globalStore.UserID },
     withCredentials : true,
   }).then((res) => {
     globalStore.UserSchedules = res.data.schedules;

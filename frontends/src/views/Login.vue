@@ -66,6 +66,7 @@ import { ElMessage } from 'element-plus'
 import axios from 'axios' // 确保已安装axios
 // import { ModifyServerURL } from '@/utils/DataManager'
 import { useRouter } from 'vue-router'
+import globalStore from "../utils/GlobalStore"
 
 const router = useRouter();
 
@@ -144,6 +145,7 @@ const handleLogin = async () => {
       // 登录成功处理
       ElMessage.success('登录成功')
     //   ModifyServerURL(form.serverURL);
+      globalStore.UserID = result.user_id;
       router.push("/home");
     } else {
       // 登录失败处理
