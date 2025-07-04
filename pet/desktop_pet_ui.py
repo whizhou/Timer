@@ -1,4 +1,3 @@
-
 """
 桌宠UI界面模块
 负责桌宠的界面显示、动画播放和用户交互
@@ -19,6 +18,7 @@ project_root = os.path.dirname(current_dir)
 
 # 使用相对导入
 from pet_chat import PetChatWindow
+from pet_login import LoginWindow
 
 class DesktopPetUI(QLabel):
     """桌宠UI界面类"""
@@ -379,6 +379,8 @@ class DesktopPetUI(QLabel):
         # 添加菜单项
         chat_action = menu.addAction("聊天")
         menu.addSeparator()
+        account_action = menu.addAction("关联日程管理账号")
+        menu.addSeparator()
         exit_action = menu.addAction("退出")
         
         # 显示菜单并获取选择的动作
@@ -387,6 +389,8 @@ class DesktopPetUI(QLabel):
         # 处理菜单动作
         if action == chat_action:
             self._handle_chat_action()
+        elif action == account_action:
+            self._handle_account_action()
         elif action == exit_action:
             self._handle_exit_action()
 
@@ -403,6 +407,16 @@ class DesktopPetUI(QLabel):
         # 通知控制器开始聊天
         if self.controller:
             self.controller.start_chat()
+
+    def _handle_account_action(self):
+        """处理关联日程管理账号动作"""
+        # 打开登录窗口
+        if hasattr(self, 'login_window') and self.login_window.isVisible():
+            self.login_window.activateWindow()
+        else:
+            self.login_window = LoginWindow()
+            self.login_window.setWindowModality(Qt.NonModal)
+            self.login_window.show()
 
     def _handle_exit_action(self):
         """处理退出动作"""
