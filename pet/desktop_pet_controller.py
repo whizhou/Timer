@@ -47,7 +47,10 @@ class DesktopPetController:
         self.current_mood = pet.get_mood_type()
         self.is_exiting = False
         self.is_performing_idle_action = False  # 标记是否正在执行待机动作
-        
+        self.is_studying = False  # 标记是否正在学习
+        self._pre_study_animation_state = None  # 保存进入学习前的动画状态
+    
+
         # 定时器和管理器
         self.update_interval = PetConfig.UPDATE_INTERVAL
         self.bubble_timer = QTimer()
@@ -344,6 +347,10 @@ class DesktopPetController:
         print("拖拽结束")
         self.is_dragging = False
         self.pet.set_dragging_state(False)
+
+        if self.is_studying:
+            self.play_study_with_me_animation()
+            return
         
         # 恢复默认动画
         self._load_default_animation(self.pet.get_mood_type())
@@ -578,11 +585,48 @@ class DesktopPetController:
         messages = action_messages.get(action, [])
         return random.choice(messages) if messages else None
 
+    def _save_current_animation_state(self):
+        """保存当前动画状态（动画文件夹、是否单次、当前帧索引）"""
+        state = {
+            'frame_folder': self.ui.frame_folder,
+            'loop_once': getattr(self.ui, 'loop_once', False),
+            'frame_index': getattr(self.ui, 'current_frame_index', 0)
+        }
+        self._pre_study_animation_state = state
+        print(f"保存动画状态: {state}")
+
+    def _restore_animation_state(self):
+        """恢复保存的动画状态"""
+        state = self._pre_study_animation_state
+        if state:
+            print(f"恢复动画状态: {state}")
+            self.ui.set_animation_folder(state['frame_folder'], loop_once=state['loop_once'])
+            self.ui.current_frame_index = state['frame_index']
+        else:
+            print("无可恢复的动画状态，恢复默认站立动画")
+            self._load_default_animation(self.pet.get_mood_type())
+        self._pre_study_animation_state = None
+        
+        # 重置聊天状态，确保待机动作能够正常触发
+        self.pet.set_chatting_state(False)
+        print("已重置聊天状态为False")
+        
+        # 重新启动待机动作定时器
+        self._restart_idle_action_timer()
+        print("已重新启动待机动作定时器")
+
     def play_study_with_me_animation(self):
-        """先播放A目录一次，播放完后循环播放B目录"""
+        self._save_current_animation_state()
+        
+        # 停止待机动作相关定时器
+        if hasattr(self, 'idle_action_timer'):
+            self.idle_action_timer.stop()
+        if hasattr(self, 'idle_recovery_timer'):
+            self.idle_recovery_timer.stop()
+        self.is_performing_idle_action = False
+        
         pet_id = self.pet.get_id()
         mood = self.pet.get_mood_type()
-        # 兼容多心情/多目录，直接用绝对路径
         a_path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
             f'static/charactor/{pet_id}/study/A'
@@ -599,5 +643,24 @@ class DesktopPetController:
             self.ui.set_animation_folder(b_path, loop_once=False)
         self.ui._on_animation_finished = play_b
         print("开始播放A动画（单次）")
+        self.is_studying = True
         self.ui.set_animation_folder(a_path, loop_once=True)
 
+    def play_rest_c_then_restore(self):
+        """播放C动画一次，播放完后恢复进入学习前的动画状态"""
+        pet_id = self.pet.get_id()
+        c_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),
+            f'static/charactor/{pet_id}/study/C'
+        )
+        if not os.path.exists(c_path):
+            print(f"休息动画目录不存在: {c_path}")
+            self._restore_animation_state()
+            return
+        def restore():
+            print("C动画播放完毕，恢复进入学习前的动画状态")
+            self.is_studying = False
+            self._restore_animation_state()
+        self.ui._on_animation_finished = restore
+        print("播放C动画（单次），休息一下")
+        self.ui.set_animation_folder(c_path, loop_once=True)

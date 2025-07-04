@@ -506,6 +506,10 @@ class PetChatWindow(QWidget):
             self.add_message("好呀，我来陪你一起学习！", False, True, thinking_time)
             self.pet_controller.play_study_with_me_animation()
             return
+        if self.pet_controller and ("休息一下吧" in user_message or "休息一下" in user_message):
+            self.add_message("好呀，休息一下~", False, True, thinking_time)
+            self.pet_controller.play_rest_c_then_restore()
+            return
 
         # 简单的关键词匹配响应作为示例
         response = ""
