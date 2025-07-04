@@ -8,6 +8,7 @@ import ChatZone from './components/ChatZone.vue'
 import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
 import Chat from "vue3-beautiful-chat"
+// import VueCookies from 'vue-cookies'
 
 import VMdPreview from '@kangc/v-md-editor/lib/preview';
 import '@kangc/v-md-editor/lib/style/preview.css';
@@ -33,6 +34,7 @@ app.component("chatzone",ChatZone)
 app.use(ElementPlus)
 app.use(router)
 app.use(Chat)
+// app.use(VueCookies)
 app.use(VMdPreview)
 
 app.mount('#app')

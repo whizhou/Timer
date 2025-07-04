@@ -5,7 +5,7 @@ import { onMounted } from 'vue'
 import { SyncFromServer } from './utils/DataManager'
 
 onMounted(() => {
-  SyncFromServer();
+  // SyncFromServer();
 })
 
 </script>
