@@ -28,30 +28,34 @@ class PromptGenerator:
             ## 当前日期
             {today}
             ## 任务说明
-            你是一个专业的面向大学生的意图分类器，只需分析用户最新输入的单一语句，判断其意图类型。
-            
-            ## 意图类型定义（严格选择一项）：
-            1. CREATE - 用户明确表示要"添加"、"新建"、"安排"日程，或描述未来某时间要做的事
+            你是一个专业的面向大学生的意图分类器，只需分析用户的最新输入，判断其意图类型。
+
+            ## 意图类型定义（严格选择一项，优先考虑CREATE/MODIFY/DELETE/INQUIRY，只有完全无法归类时才选GENERAL）：
+            1. CREATE - 用户明确表示要"添加"、"新建"、"安排"、"创建"日程，或描述未来某时间要做的事
             - 包括以老师的口吻布置作业、考试、任务、活动等，且需要包含一个明确时间点，也应判定为CREATE
             2. MODIFY - 用户使用"修改"、"调整"、"更新"、"改为"、"换成"等动词，或提到已有日程的变更
             - 在添加、删减内容但是没有指代词且缺少时间时，应该与上文对应项比对，若内容符合更改则判定为MODIFY
             3. DELETE - 用户使用"删除"、"取消"、"移除"等动词，或表示不再需要某日程
-            4. INQUERY - 用户使用"查询"、"查看"、"有哪些"等词询问日程信息
-            5. GENERAL - 不符合以上任何一类，如问候、闲聊、非日程相关的问题
-            
+            4. INQUIRY - 用户使用"查询"、"查看"、"有哪些"等词询问日程信息
+            5. GENERAL - 仅当用户输入完全无法归类为上述四类时才选择GENERAL。GENERAL仅用于以下情况：
+            - 明显的闲聊、问候、无关日程的内容（如“你好”“你是谁”“天气怎么样”）
+            - 用户输入与日程、提醒、查询、修改、删除均无关，且无法推断出任何日程相关意图
+            - 不要因为模型不确定而选择GENERAL，优先尝试归类为CREATE/MODIFY/DELETE/INQUIRY
+
             ## 分析规则
             1. 主要关注当前输入
             2. 当前输入包含指代词（如"刚才的安排"）时，关注当前输入的动词。
             3. 当前输入与上文用户输入时间结点或主体重合时，要关注是否是对上文的更改。
             4. 如果语句中包含多个意图，选择最核心的意图
-            5. 只需返回大写关键词（CREATE/MODIFY/DELETE/INQUERY/GENERAL）
+            5. 只需返回大写关键词（CREATE/MODIFY/DELETE/INQUIRY/GENERAL）
             6. 不要添加任何解释或额外文本
-            
+            7. 除非完全无法归类，否则不要选择GENERAL
+
             ## 指代解析指南
             - "这个" → 最近提到的日程
             - "刚才的" → 最近一次操作
-            - "之前的" → 历史中倒数第二个
-            
+            - "之前的" → 最近的历史操作（倒数第二个）
+
             ## 示例
             历史1: "创建明天下午3点的会议"
             当前: "删除这个" → DELETE
@@ -62,6 +66,11 @@ class PromptGenerator:
             历史1: "查看下周会议"
             历史2: "把周二的改到周三"
             当前: "取消刚才的安排" → DELETE
+
+            当前: "你好" → GENERAL
+            当前: "你是谁" → GENERAL
+            当前: "帮我查一下明天的安排" → INQUIRY
+            当前: "安排明天下午两点的讨论" → CREATE
         """).strip()
 
     def _generate_system_prompt(
@@ -352,7 +361,7 @@ class PromptGenerator:
         
         return f"{base_prompt}\n\n{delete_rules}"
     
-    def _parse_inquery(
+    def _parse_inquiry(
         self,
         existing_schedules: Optional[List[Dict]] = None
     ) -> str:
@@ -362,7 +371,7 @@ class PromptGenerator:
             
         base_prompt = self._generate_system_prompt(existing_schedules)
         
-        inquery_rules = dedent("""
+        inquiry_rules = dedent("""
             ## 查询规则
             0. 如果用户没有说明任何查询条件，默认返回时间最近的至多3个未归档日程。
             1. 否则你的任务是根据用户输入，在已有日程列表中查找匹配度比较高的日程，并返回匹配日程的完整日志json。
@@ -428,85 +437,7 @@ class PromptGenerator:
             5. 只返回JSON格式结果，不要解释。
         """).strip()
         
-        return f"{base_prompt}\n\n{inquery_rules}"
-    
-    def _parse_inquery(
-        self,
-        existing_schedules: Optional[List[Dict]] = None
-    ) -> str:
-        """生成查询日程的专用提示词"""
-        if not existing_schedules:
-            raise ValueError("查询日程必须提供已有日程列表")
-            
-        base_prompt = self._generate_system_prompt(existing_schedules)
-        
-        inquery_rules = dedent("""
-            ## 查询规则
-            0. 如果用户没有说明任何查询条件，默认返回时间最近的3个未归档日程。
-            1. 否则你的任务是根据用户输入，在已有日程列表中查找匹配度比较高的日程，并返回匹配日程的完整日志json。
-            2. 匹配优先级如下（按顺序）：
-                a. 时间范围匹配（如“查询明天的日程”）
-                b. 标题完全匹配（如“查询‘XXX’日程”）
-                c. 标题部分匹配（如“上一个日程”“刚才的日程”“查询人工智能考试”）
-                d. 内容部分匹配（如“查询交作业的提醒”）
-                e. id完全匹配（如用户直接说“查询id为X的日程”）
-                f. 如果用户说“上一个日程”“刚才的日程”，请选取时间最接近当前时间且未归档的日程。
-            3. 返回的完整日程项必须严格从已有日程列表中选取，不能凭空生成。
-            4. 返回格式如下：
-            ```json
-            {
-                "schedule_list": [
-                     {
-                        "id": "123",
-                        "timestamp": "2025-06-19 10:00:00",
-                        "type": "schedule",
-                        "AI_readable": true,
-                        "content": {
-                            "title": "小组会议",
-                            "content": "讨论项目进度",
-                            "whole_day": false,
-                            "begin_time": ["2023-10-15", "14:00:00"],
-                            "end_time": ["2023-10-15", "15:00:00"],
-                            "location": "会议室A",
-                            "remind_start": ["2023-10-15", "08:00:00"],
-                            "remind_before": 120,
-                            "tag": "work",
-                            "repeat": {
-                                "repeat": false
-                            },
-                            "additional_info": [],
-                            "archive": false
-                        }
-                    },
-                    {
-                        "id": "234",
-                        "timestamp": "2024-10-16 10:00:00",
-                        "type": "schedule",
-                        "AI_readable": true,
-                        "content": {
-                            "title": "数值分析作业",
-                            "content": "",
-                            "whole_day": false,
-                            "begin_time": ["2024-10-19", "08:00:00"],
-                            "end_time": ["2024-10-19", "20:00:00"],
-                            "location": "",
-                            "remind_start": ["2024-10-19", "08:00:00"],
-                            "remind_before": 120,
-                            "tag": "default",
-                            "repeat": {
-                                "repeat": false
-                            },
-                            "additional_info": [],
-                            "archive": false
-                        }
-                    },
-                ]
-            }
-            ```
-            5. 只返回JSON格式结果，不要解释。
-        """).strip()
-        
-        return f"{base_prompt}\n\n{inquery_rules}"
+        return f"{base_prompt}\n\n{inquiry_rules}"
     
     def _generate_general_prompt(self) -> str:
         general_prompt = dedent(f"""

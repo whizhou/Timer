@@ -39,7 +39,7 @@ def chat():
 
     from core.core import scheduler
     # print(f"Received message: {message}")
-    res = scheduler.process_user_request({'word': message})
+    res = scheduler.process_user_request({'word': message}, messages)
     schedule: Dict = {}
     response: str = ""
     if isinstance(res, dict):
@@ -59,7 +59,7 @@ def chat():
         elif res['action'] == 'delete':
             response = f"成功删除日程: {res['schedule_title']} (id={res['schedule_id']})"
 
-        elif res['action'] == 'inquery':
+        elif res['action'] == 'inquiry':
             schedule_list = res['schedule_list']
 
             ds_messages = [

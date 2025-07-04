@@ -10,7 +10,7 @@ from typing import List, Dict, Union
 from .ai_utils.prompt_generator import PromptGenerator
 from .ai_utils.ai_schedule_manager import AIScheduleManager
 # from .ai_utils.intent_classifier import IntentClassifier
-from .ai_utils.deepseek_chat import DeepSeekChat
+# from .ai_utils.deepseek_chat import DeepSeekChat
 from .scheduler import Scheduler
 from .database.schedule_manager import ScheduleManager
 
@@ -36,7 +36,7 @@ class AIScheduler(Scheduler):
         self.prompt_generator = PromptGenerator()
         self.ai_schedule_manager = AIScheduleManager()
         # self.intent_classifier = IntentClassifier()
-        self.deepseek_chat = DeepSeekChat()
+        # self.deepseek_chat = DeepSeekChat()
         
         # 设置意图处理器
         self._setup_intent_handlers()
@@ -49,16 +49,17 @@ class AIScheduler(Scheduler):
             "CREATE": self._handle_create_intent,    # 创建意图处理器
             "MODIFY": self._handle_modify_intent,   # 修改意图处理器
             "DELETE": self._handle_delete_intent,    # 删除意图处理器
-            "INQUERY": self._handle_inquery_intent,
+            "INQUIRY": self._handle_inquiry_intent,
             "GENERAL": self._handle_general_intent,
         }
     
-    def process_user_request(self, user_input: Dict) -> Union[Dict, str]:
+    def process_user_request(self, user_input: Dict, messages: List[Dict]) -> Union[Dict, str]:
         """
         处理用户输入请求的主入口函数
         
         参数:
             user_input: 用户输入的原始文本
+            messages: 聊天历史消息列表
             
         返回:
             如果是特定意图，返回操作结果字典
@@ -71,7 +72,7 @@ class AIScheduler(Scheduler):
 
         prompt_content = [
             {"role": "system", "content": f"{system_prompt}"},
-            *self.deepseek_chat.get_recent_history(1),
+            *messages[-2:],
             {"role": "user", "content": f"{str(user_input)}"}
         ]
 
@@ -80,26 +81,25 @@ class AIScheduler(Scheduler):
         #         print(f"{i}: {msg}")
 
         semantic_result = self.ai_schedule_manager._analyze_semantic_intent(prompt_content)
-        # print(semantic_result)
+        print(semantic_result)
         
         # 第二步：根据意图类型获取对应的处理函数
         handler = self.intent_handlers.get(semantic_result)
         
-        return handler(user_input) # 两者意义相同
+        return handler(user_input, messages)
     
-
-    def _handle_create_intent(self, user_input: Dict) -> Dict:
+    def _handle_create_intent(self, user_input: Dict, messages: List[Dict]) -> Dict:
         """处理创建日程/提醒的请求"""
-        # 生成创建提示词并获取响应
         all_schedules = self.get_schedules() # 获取当前日程库的所有日程
         system_prompt = self.prompt_generator._parse_creation(all_schedules)
 
         user_text = str(user_input)
-        self.deepseek_chat._add_user_message(user_text)
+        # self.deepseek_chat._add_user_message(user_text)
 
         prompt_content = [
             {"role": "system", "content": f"{system_prompt}"},
-            *self.deepseek_chat.conversation_history
+            *messages,
+            {"role": "user", "content": user_text}
         ]
         creation_result = self.ai_schedule_manager._handle_creation_response(prompt_content)
         
@@ -120,11 +120,7 @@ class AIScheduler(Scheduler):
         if created_ids and isinstance(created_ids[0], int):
             creation_result['id'] = created_ids[0]
 
-        self.deepseek_chat._add_assistant_message(str(creation_result))
-
-        # self.deepseek_chat._show_history()
-        # self.deepseek_chat._check_dialog_pairs()
-        
+        # self.deepseek_chat._add_assistant_message(str(creation_result))
         return {
             "status": "success",
             "action": "create",
@@ -132,18 +128,19 @@ class AIScheduler(Scheduler):
             "schedule_data": creation_result,  # 完整的创建数据
         }
 
-    def _handle_modify_intent(self, user_input: Dict) -> Dict:
+    def _handle_modify_intent(self, user_input: Dict, messages: List[Dict]) -> Dict:
         """处理修改日程的请求"""
         # 从文本中解析日程ID和修改内容
         all_schedules = self.get_schedules()
         system_prompt = self.prompt_generator._parse_modification(all_schedules)
 
         user_text = str(user_input)
-        self.deepseek_chat._add_user_message(user_text)
+        # self.deepseek_chat._add_user_message(user_text)
         
         prompt_content = [
             {"role": "system", "content": f"{system_prompt}"},
-            *self.deepseek_chat.conversation_history
+            *messages,
+            {"role": "user", "content": user_text}
         ]
 
         modification_result = self.ai_schedule_manager._handle_modification_response(prompt_content)
@@ -172,11 +169,7 @@ class AIScheduler(Scheduler):
             # print("update is complete")
             pass
 
-        self.deepseek_chat._add_assistant_message(str(modification_result))
-        # self.deepseek_chat._show_history()
-        # self.deepseek_chat._check_dialog_pairs()
-
-        
+        # self.deepseek_chat._add_assistant_message(str(modification_result))
         return {
             "status": "success",
             "action": "modify",
@@ -185,18 +178,19 @@ class AIScheduler(Scheduler):
             "modified": modified_data
         }
     
-    def _handle_delete_intent(self, user_input: Dict) -> Dict:
+    def _handle_delete_intent(self, user_input: Dict, messages: List[Dict]) -> Dict:
         """处理删除日程的请求"""
         # 从文本中解析日程ID
         all_schedules = self.get_schedules()
         system_prompt = self.prompt_generator._parse_delete(all_schedules)
 
         user_text = str(user_input)
-        self.deepseek_chat._add_user_message(user_text)
+        # self.deepseek_chat._add_user_message(user_text)
 
         prompt_content = [
             {"role": "system", "content": f"{system_prompt}"},
-            *self.deepseek_chat.conversation_history
+            *messages,
+            {"role": "user", "content": user_text}
         ]
 
         deletion_result = self.ai_schedule_manager._handle_deletion_response(prompt_content)
@@ -220,10 +214,7 @@ class AIScheduler(Scheduler):
         # if success:
             # print("delete is complete")
 
-        self.deepseek_chat._add_assistant_message(str(deletion_result))
-        # self.deepseek_chat._show_history()
-        # self.deepseek_chat._check_dialog_pairs()
-        
+        # self.deepseek_chat._add_assistant_message(str(deletion_result))
         return {
             "status": "success",
             "action": "delete",
@@ -231,45 +222,41 @@ class AIScheduler(Scheduler):
             "schedule_title": schedule_title
         }
     
-    def _handle_inquery_intent(self, user_input: Dict) :
+    def _handle_inquiry_intent(self, user_input: Dict, messages: List[Dict]) :
         """处理查询日程的请求"""
-        print(f"the len of his: {len(self.deepseek_chat.conversation_history)}")
+        # print(f"the len of his: {len(self.deepseek_chat.conversation_history)}")
 
         all_schedules = self.get_schedules()
-        system_prompt = self.prompt_generator._parse_inquery(all_schedules)
+        system_prompt = self.prompt_generator._parse_inquiry(all_schedules)
 
         user_text = str(user_input)
-        self.deepseek_chat._add_user_message(user_text)
+        # self.deepseek_chat._add_user_message(user_text)
 
         prompt_content = [
             {"role": "system", "content": f"{system_prompt}"},
-            *self.deepseek_chat.conversation_history
+            *messages,
+            {"role": "user", "content": user_text}
         ]
 
-        inquery_result = self.ai_schedule_manager._handle_inquery_response(prompt_content)
+        inquiry_result = self.ai_schedule_manager._handle_inquiry_response(prompt_content)
 
-                # 如果处理结果中有错误，返回错误信息
-        if "error" in inquery_result:
+        # 如果处理结果中有错误，返回错误信息
+        if "error" in inquiry_result:
             return {
                 "status": "error",
-                "action": "inquery",
-                "error": inquery_result["error"]
+                "action": "inquiry",
+                "error": inquiry_result["error"]
             }
         
-        schedule_list = inquery_result.get("schedule_list")
-        
-        self.deepseek_chat._add_assistant_message(str(inquery_result))
-
-        # for i, schedule in enumerate(schedule_list, 1):
-        #     print(f"{i}: {str(schedule)[:200]}")
-
+        schedule_list = inquiry_result.get("schedule_list")
+        # self.deepseek_chat._add_assistant_message(str(inquiry_result))
         return {
             "status": "success",
-            "action": "inquery",
+            "action": "inquiry",
             "schedule_list": schedule_list
         }
     
-    def _handle_general_intent(self, user_input: Dict) -> str:
+    def _handle_general_intent(self, user_input: Dict, messages: List[Dict]) -> str:
         """处理通用意图的回复生成"""
         system_prompt = self.prompt_generator._generate_general_prompt()
         prompt_content = [

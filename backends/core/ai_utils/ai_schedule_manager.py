@@ -72,7 +72,7 @@ class AIScheduleManager:
             )
             
             result = response.choices[0].message.content.strip().upper()
-            return result if result in ["CREATE", "MODIFY", "DELETE", "INQUERY"] else "GENERAL"
+            return result if result in ["CREATE", "MODIFY", "DELETE", "INQUIRY"] else "GENERAL"
         except Exception as e:
             print(f"语义分析出错: {e}")
             return "GENERAL"
@@ -193,9 +193,9 @@ class AIScheduleManager:
             return {"error": str(e)}
         
         
-    def _handle_inquery_response(self, prompt_content: List[Dict[str, str]]) -> Dict[str, Dict]:
+    def _handle_inquiry_response(self, prompt_content: List[Dict[str, str]]) -> Dict[str, Dict]:
         """
-        处理修改日程的响应（内部方法）
+        处理查询日程的响应（内部方法）
         返回格式：{
             "schedule_list" : 查询到的日程列表， # 必须字段
         }
