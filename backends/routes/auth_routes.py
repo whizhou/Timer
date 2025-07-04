@@ -11,7 +11,10 @@ def load_logged_in_user():
     """Load the logged-in user from the session."""
     user_id = session.get('user_id', None)
     if user_id is None:
-        user_id = request.get_json().get('user_id', None)
+        try:
+            user_id = request.get_json().get('user_id', None)
+        except:
+            user_id = None
     # print(f"User ID from session: {user_id}")
     
     if user_id is not None:
