@@ -10,7 +10,9 @@ bp = Blueprint('auth', __name__, url_prefix='/auth')
 def load_logged_in_user():
     """Load the logged-in user from the session."""
     user_id = session.get('user_id', None)
-    print(f"User ID from session: {user_id}")
+    if user_id is None:
+        user_id = request.get_json().get('user_id', None)
+    # print(f"User ID from session: {user_id}")
     
     if user_id is not None:
         from core.core import scheduler
@@ -76,7 +78,7 @@ def login():
                     # from core.core import scheduler
                     # scheduler.login(user['id'])
 
-                    return jsonify({'success': True})
+                    return jsonify({'success': True, 'user_id': user['id']})
                 else:
                     error = 'Failed to authenticate user.'
             except Exception as e:
