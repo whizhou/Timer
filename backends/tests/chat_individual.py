@@ -45,8 +45,12 @@ def test_pet_routes():
 
 def test_auth():
     response = requests.post(
+        f"{BASE_URL}/auth/register",
+        json={'username': '321', 'password': '123'}
+    )
+    response = requests.post(
         f"{BASE_URL}/auth/login",
-        json={'username': 'testuser', 'password': '123'}
+        json={'username': '321', 'password': '123'}
     )
     session_cookie = response.cookies.get('session')
     response = requests.get(
