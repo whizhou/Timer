@@ -186,7 +186,7 @@ class LoginWindow(QWidget):
                     error_message = response.json().get('error', '未知错误')
                 except:
                     error_message = '无法解析服务器响应'
-                QMessageBox.critical(self, '错误', f'服务器错误: {response.status_code}', f'错误信息: {error_message}')
+                # QMessageBox.critical(self, '错误', f'服务器错误: {response.status_code}', f'错误信息: {error_message}')
         except requests.exceptions.RequestException as e:
             login_btn.setText('登 录')
             login_btn.setEnabled(True)

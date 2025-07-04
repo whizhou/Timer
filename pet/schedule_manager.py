@@ -4,16 +4,15 @@ import time
 from typing import List, Dict, Any
 import threading
 import sys
-
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from backends.core.scheduler import Scheduler
+import requests
+BASE_URL = "http://127.0.0.1:5000"
 
 class ScheduleManager:
     """管理日程数据的类"""
     
     def __init__(self, update_interval: int = 3):
-        self.schedules_file = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 
-                                         "backends", "data", "example_schedules.json")
+        # self.schedules_file = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 
+        #                                  "backends", "data", "example_schedules.json")
         self.schedules = []
         self.last_update_time = 0
         self.update_interval = update_interval
@@ -31,8 +30,15 @@ class ScheduleManager:
     
     def update_schedules(self) -> None:
         """更新日程数据"""
-        data = Scheduler().get_schedules().get('schedules', [])
-        self.schedules = data
+        try:
+            response = requests.post(
+                f"{BASE_URL}/schedule/sync",
+            json={'schedules': self.schedules}
+            )
+            self.schedules = response.json()
+        except Exception as e:
+            print(f"Error updating schedules: {e}")
+            self.schedules = []
         # try:
         #     if os.path.exists(self.schedules_file):
         #         with open(self.schedules_file, 'r', encoding='utf-8') as f:
