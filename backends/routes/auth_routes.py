@@ -9,19 +9,24 @@ bp = Blueprint('auth', __name__, url_prefix='/auth')
 @bp.before_app_request
 def load_logged_in_user():
     """Load the logged-in user from the session."""
-    user_id = session.get('user_id')
+    user_id = session.get('user_id', None)
     
-    from core.core import scheduler
     if user_id is not None:
+        from core.core import scheduler
         scheduler.login(user_id)
+        g.user = user_id
     else:
-        return jsonify({'success': False, 'error': 'No user is currently logged in.'}), 401
+        g.user = None
+        # return jsonify({'success': False, 'error': 'No user is currently logged in.'}), 401
 
 @bp.route('/register',  methods=['POST', 'GET'])
 def register():
     if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
+        # username = request.form['username']
+        # password = request.form['password']
+        data = request.get_json()
+        username = data.get('username')
+        password = data.get('password')
         error = None
 
         if not username:
@@ -39,7 +44,7 @@ def register():
                 return jsonify({'success': True})
             
         if error:
-            return jsonify({'success': False, 'error': error})
+            return jsonify({'success': False, 'error': error}), 400
         
     return jsonify({'success': False, 'error': 'Invalid request method.'}), 405
 
@@ -47,8 +52,11 @@ def register():
 @bp.route('/login', methods=['POST', 'GET'])
 def login():
     if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
+        # username = request.form['username']
+        # password = request.form['password']
+        data = request.get_json()
+        username = data.get('username')
+        password = data.get('password')
         error = None
 
         if not username:
@@ -64,8 +72,8 @@ def login():
                     session['user_id'] = user['id']
 
                     # Log the user
-                    from core.core import scheduler
-                    scheduler.login(user['id'])
+                    # from core.core import scheduler
+                    # scheduler.login(user['id'])
 
                     return jsonify({'success': True})
                 else:
@@ -83,7 +91,7 @@ def logout():
     if user_id:
         # Log the user out
         from core.core import scheduler
-        scheduler.logout(user_id)
+        scheduler.logout()
     else:
         return jsonify({'success': False, 'error': 'No user is currently logged in.'})
     
@@ -91,3 +99,10 @@ def logout():
 
     return jsonify({'success': True})
 
+def login_required(view):
+    """Decorator to ensure the user is logged in."""
+    def wrapped_view(**kwargs):
+        if g.user is None:
+            return jsonify({'success': False, 'error': 'User not logged in.'}), 401
+        return view(**kwargs)
+    return wrapped_view

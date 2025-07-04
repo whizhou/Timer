@@ -9,7 +9,7 @@ class AuthManager:
             self.init_app(app)
 
     def init_app(self, app):
-        self._path = Path(app.config.get('AUTH_MANAGER_PATH')).resolve()
+        self._path = Path(app.config.get('AUTH_JSON_PATH')).resolve()
         if not self._path.exists():
             self._path.mkdir(parents=True, exist_ok=True)
         
@@ -34,7 +34,7 @@ class AuthManager:
         users = [user for user in users if user['username'] != username]
         self._save_users(users)
 
-    def authenticate(self, username: str, password: str) -> Dict:
+    def authenticate(self, username: str, password: str) -> Dict | None:
         """Authenticate a user with the given username and password."""
         users = self._load_users()
         user = None

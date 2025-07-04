@@ -7,6 +7,14 @@ from datetime import datetime, timedelta
 
 bp = Blueprint('schedule', __name__, url_prefix='/schedule')
 
+@bp.before_request
+def check_logged_in():
+    """
+    Check if the user is logged in before processing the request.
+    If not logged in, return an error response.
+    """
+    if g.user is None:
+        return jsonify({'success': False, 'error': 'User not logged in.'}), 401
 
 @bp.route('/', methods=['GET', 'POST'])
 def schedule():

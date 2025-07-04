@@ -27,12 +27,6 @@ class ScheduleManager(Database):
         # Database.init_app(self, app)
         if auth is not None:
             self.login(auth)
-        elif app.config.get('MODE') == 'development':
-            self.login('dev')
-        elif app.config.get('MODE') == 'testing':
-            self.login('test')
-        else:
-            self.login('default')
         
         
     def read_schedules(self) -> List[Dict]:

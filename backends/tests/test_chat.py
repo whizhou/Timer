@@ -14,11 +14,24 @@ def test_multi_chat(client):
     """Test multi-chat"""
     # Test with multiple messages
     messages = [
-
-       "查询未来日程",
-
+        "明天下午三点开会",
+        "查询未来日程",
     ]
     
+    # if already registered, skip registration
+    
+    # response = client.post('/auth/register', json={
+    #     'username': 'testuser',
+    #     'password': '123'
+    # })
+    # assert response.status_code == 200
+
+    response = client.post('/auth/login', json={
+        'username': 'testuser',
+        'password': '123'
+    })
+    assert response.status_code == 200
+
     for message in messages:
         response = client.post('/chat/', json={'message': message})
         assert response.status_code == 200

@@ -12,24 +12,26 @@ class Database:
         self._file: dict = {}  # Cache for the file, type: dict
         self.settings: dict = {}  # Settings for the database, type: dict
 
-    def login(self, auth: int | str) -> bool:
+    def login(self, user_id: int) -> bool:
         """Login method to set the authentication.
         Args:
-            auth: The authentication object or credentials.
+            user_id (int): The user ID to authenticate.
         """
         if self._auth is not None:
             self.logout()
 
-        self._auth = auth
-        self._path = Path(self.settings.get('SCHEDULE_JSON_PATH')) / f'{auth}.json'
+        self._auth = user_id
+        self._path = Path(self.settings.get('SCHEDULE_JSON_PATH')) / f'{user_id}.json'
 
         if not self._path.exists():
             # Create the file if it doesn't exist
             self._path.parent.mkdir(parents=True, exist_ok=True)
-            self._file = {'auth': auth, 'schedules': []}
-            self.write(self._file)
+            # self.write(self._file)
         else:
             self._file = self.read()
+        
+        if not self._file or self._file == {}:
+            self._file = {'auth': user_id, 'schedules': []}
 
         return True
     
