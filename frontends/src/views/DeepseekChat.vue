@@ -146,7 +146,7 @@ import { cloneDeep } from "lodash";
 import axios from "axios";
 import Tesseract from "tesseract.js";
 import globalStore from "@/utils/GlobalStore";
-import { SyncFromServer } from "@/utils/DataManager";
+import { SyncFromServer,PostDataToServer } from "@/utils/DataManager";
 
 export default {
   components: {
@@ -434,12 +434,14 @@ export default {
         };
 
         // 发送请求到后端API
-        const response = await fetch("/chat/", {
+        const queryP = new URLSearchParams({user_id:globalStore.UserID}).toString();
+
+        const response = await fetch("/chat?"+queryP, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(requestData),
+          body: JSON.stringify({...requestData,user_id:globalStore.UserID}),
           credentials: "include", // 仍然包含cookie作为备选
         });
 

@@ -183,8 +183,7 @@ class PetChatWindow(QWidget):
         self.user_avatar = None  # 用户头像路径
         self.id = id  # 桌宠ID
         # 使用头像文件夹下的图片作为桌宠头像
-
-        self.pet_avatar_path = project_root + "/pet/static/charactor/" + str(self.id) + "/头像/image.png"
+        self.pet_avatar_path = os.path.join(current_dir, "static/charactor/" + str(self.id) + "/头像/image.png")
         try:
             self.pet_avatar = self.pet_avatar_path
             print(f"使用头像: {self.pet_avatar}")
@@ -515,9 +514,13 @@ class PetChatWindow(QWidget):
         response = ""
         lower_msg = "请模仿桌面宠物的语气回复，语气日常一点、不要太过热情，可以的话偶尔在每句话最后加个\"喵\":" + user_message.lower()
         
+        from pet_login import get_session_id
+        session_id = get_session_id()
+
         response = requests.post(
             f"{BASE_URL}/chat",
-            json={'message': lower_msg}
+            json={'message': lower_msg},
+            cookies={'session': session_id},
         )
         try:
             response = response.json()["response"]

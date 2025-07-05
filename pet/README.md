@@ -84,7 +84,8 @@ class PetConfig:
 
 ### 启动应用
 ```bash
-python main.py
+pyinstaller pet/main.spec
+./pet/dist/pet.exe
 ```
 
 ### 交互方式
@@ -93,6 +94,7 @@ python main.py
 3. **拖拽** - 移动桌宠位置
 4. **右键菜单**：
    - 聊天 - 打开聊天窗口
+   - 关联日程管理账号 - 打开登录窗口，关联日程管理账号 ⭐ 新增
    - 退出 - 播放退出动画后关闭 ⭐ 新增功能
 
 

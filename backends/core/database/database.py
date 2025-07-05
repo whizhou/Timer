@@ -7,29 +7,34 @@ from pathlib import Path
 
 class Database:
     def __init__(self):
-        self._auth: str | None = None  # Authentication object, type: str
+        self._auth: int | None = None  # Authentication object, type: str
         self._path: Path | None = None  # Path to the data file, type: Path
         self._file: dict = {}  # Cache for the file, type: dict
         self.settings: dict = {}  # Settings for the database, type: dict
 
-    def login(self, auth) -> bool:
+    def login(self, user_id: int) -> bool:
         """Login method to set the authentication.
         Args:
-            auth: The authentication object or credentials.
+            user_id (int): The user ID to authenticate.
         """
+        if self._auth is not None and self._auth == user_id:
+            # If already logged in with the same user_id, no need to re-login
+            return True
         if self._auth is not None:
             self.logout()
 
-        self._auth = auth
-        self._path = Path(self.settings.get('SCHEDULE_JSON_PATH')) / f'{auth}.json'
+        self._auth = user_id
+        self._path = Path(self.settings.get('SCHEDULE_JSON_PATH')) / f'{user_id}.json'
 
         if not self._path.exists():
             # Create the file if it doesn't exist
             self._path.parent.mkdir(parents=True, exist_ok=True)
-            self._file = {'auth': auth, 'schedules': []}
-            self.write(self._file)
+            # self.write(self._file)
         else:
             self._file = self.read()
+        
+        if not self._file or self._file == {}:
+            self._file = {'auth': user_id, 'schedules': []}
 
         return True
     
@@ -81,6 +86,8 @@ class Database:
         Returns:
             bool: True if the save operation was successful, False otherwise.
         """
+        if self._auth is None or self._path is None:
+            return False
         return self.write(self._file)
 
     def append(self, data: dict) -> bool:

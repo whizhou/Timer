@@ -5,6 +5,8 @@
         "timestamp": "last modified time, in YYYY-MM-DD HH:MM:SS format",
         "type": "schedule",
         "AI_readable": "bool: whether the schedule is AI readable (optional)",
+        "finished": "bool: whether the schedule is finished (optional)",
+        "archive": "bool: whether the schedule is archived (optional)",
         "content": {
             "title": "the title of the schedule",
             "content": "the content of the schedule (optional)",
@@ -25,9 +27,7 @@
                 "any additional information related to the schedule (optional)",
                 "this can include links, notes, or any other relevant details",
                 "without any specific format, just plain text"
-            ],
-            "archive": "bool: whether the schedule is archived (optional)",
-            "archive_time": "archived time, in YYYY-MM-DD HH:MM:SS format"
+            ]
         }
     },
     {
@@ -35,6 +35,8 @@
         "timestamp": "last modified time, in YYYY-MM-DD HH:MM:SS format",
         "type": "reminder",
         "AI_readable": "bool: whether the schedule is AI readable (optional)",
+        "finished": "bool: whether the schedule is finished (optional)",
+        "archive": "bool: whether the reminder is archived (optional)",
         "content": {
             "title": "the title of the reminder",
             "content": "the content of the reminder (optional)",
@@ -47,9 +49,7 @@
                 "any additional information related to the reminder (optional)",
                 "this can include links, notes, or any other relevant details",
                 "without any specific format, just plain text"
-            ],
-            "archive": "bool: whether the reminder is archived (optional)",
-            "archive_time": "archived time, in YYYY-MM-DD HH:MM:SS format"
+            ]
         }
     }
 ],
