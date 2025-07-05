@@ -7,16 +7,52 @@ from PyQt5.QtWidgets import (QApplication, QWidget, QLabel, QLineEdit,
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont, QIcon, QColor
 import os
+
 BASE_URL = "http://127.0.0.1:5000"
+
+
+def get_resource_path(relative_path):
+    """获取资源文件的绝对路径，兼容 PyInstaller 打包后的路径"""
+    try:
+        # PyInstaller 创建临时文件夹，将路径存储在 _MEIPASS 中
+        base_path = sys._MEIPASS
+    except Exception:
+        # 如果不是 PyInstaller 打包的环境，使用当前文件所在目录
+        base_path = os.path.abspath(".")
+    
+    return os.path.join(base_path, relative_path)
+
+
+def get_data_dir():
+    """获取数据目录路径，兼容 PyInstaller 运行时"""
+    if getattr(sys, 'frozen', False):
+        # PyInstaller 打包后的情况
+        # 使用用户目录下的应用数据文件夹
+        app_name = "TimerPet"
+        if sys.platform == "win32":
+            data_dir = os.path.join(os.path.expanduser("~"), "AppData", "Local", app_name)
+        elif sys.platform == "darwin":
+            data_dir = os.path.join(os.path.expanduser("~"), "Library", "Application Support", app_name)
+        else:
+            data_dir = os.path.join(os.path.expanduser("~"), ".config", app_name)
+    else:
+        # 开发环境，使用当前文件所在目录下的 data 文件夹
+        data_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
+    
+    # 确保目录存在
+    os.makedirs(data_dir, exist_ok=True)
+    return data_dir
 
 
 def get_session_id() -> str:
     """从本地文件中读取会话ID"""
-    session_path = Path(__file__).parent.resolve() / 'data'
-    session_file = session_path / 'session.txt'
-    if session_file.exists():
-        with open(session_file, 'r', encoding='utf-8') as f:
-            return f.read().strip()
+    session_file = os.path.join(get_data_dir(), 'session.txt')
+    if os.path.exists(session_file):
+        try:
+            with open(session_file, 'r', encoding='utf-8') as f:
+                return f.read().strip()
+        except Exception as e:
+            print(f"读取会话文件失败: {e}")
     return ''
 
 
@@ -28,7 +64,12 @@ class LoginWindow(QWidget):
     def init_ui(self):
         # 窗口基础设置
         self.setWindowTitle('用户登录系统')
-        self.setWindowIcon(QIcon(os.path.join(os.path.dirname(__file__), 'static/charactor/1/头像/image.png')))
+        
+        # 获取图标路径，兼容 PyInstaller
+        icon_path = get_resource_path(os.path.join('static', 'charactor', '1', '头像', 'image.png'))
+        if os.path.exists(icon_path):
+            self.setWindowIcon(QIcon(icon_path))
+        
         self.setFixedSize(500, 400)
         
         # 整体背景浅色
@@ -196,11 +237,12 @@ class LoginWindow(QWidget):
                 session_cookie = response.cookies.get('session')
                 # 将会话ID存储在本地
                 if session_cookie:
-                    session_path = Path(__file__).parent.resolve() / 'data'
-                    session_path.mkdir(parents=True, exist_ok=True)
-                    session_file = session_path / 'session.txt'
-                    with open(session_file, 'w', encoding='utf-8') as f:
-                        f.write(session_cookie)
+                    session_file = os.path.join(get_data_dir(), 'session.txt')
+                    try:
+                        with open(session_file, 'w', encoding='utf-8') as f:
+                            f.write(session_cookie)
+                    except Exception as e:
+                        print(f"保存会话文件失败: {e}")
             else:
                 try:
                     error_message = response.json().get('error', '未知错误')
