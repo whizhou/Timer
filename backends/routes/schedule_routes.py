@@ -175,7 +175,7 @@ def tomorrow_titles(days: int):
         schedule_date = datetime.strptime(schedule['content']['end_time'][0], '%Y-%m-%d').date()
         if schedule_date == target_date:
             titles.append(schedule['content']['title'])
-    print(f"Titles for tomorrow ({days} days later): {titles}")
+    # print(f"Titles for tomorrow ({days} days later): {titles}")
     return jsonify({'titles': titles})
 
 @bp.route('/quantity/<int:days>', methods=['GET'])

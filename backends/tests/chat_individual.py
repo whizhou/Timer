@@ -75,8 +75,22 @@ def test_auth_json():
     )
     print("Response from /schedule with session cookie:", response.json())
 
+def test_chat_remind():
+    response = requests.post(
+        f"{BASE_URL}/auth/login",
+        json={'username': 'testuser', 'password': '123123'}
+    )
+    user_id = response.json().get('user_id')
+    print(f"User ID from login: {user_id}")
+    response = requests.get(
+        f'{BASE_URL}/chat/remind',
+        params={'user_id': user_id} if user_id else None,
+    )
+    print("Response from /chat/remind with session cookie:\n", response.json())
+
 if __name__ == "__main__":
     # test_independent_requests()
     # test_pet_routes()
-    test_auth()
+    # test_auth()
     # test_auth_json()
+    test_chat_remind()
