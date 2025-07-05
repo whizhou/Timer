@@ -146,7 +146,7 @@ import { cloneDeep } from "lodash";
 import axios from "axios";
 import Tesseract from "tesseract.js";
 import globalStore from "@/utils/GlobalStore";
-import { SyncFromServer,PostDataToServer } from "@/utils/DataManager";
+import { SyncFromServer,PostDataToServer,GetDataFromServer,serverURL } from "@/utils/DataManager";
 
 export default {
   components: {
@@ -157,7 +157,7 @@ export default {
       messages: [
         { text: "你好！", align: "left" },
         { text: "你好！", align: "right" },
-        { text: "功能开发中... ...", align: "left" },
+        // { text: "功能开发中... ...", align: "left" },
       ],
       userinput: "",
       sessionId: null, // 存储会话ID
@@ -171,14 +171,28 @@ export default {
       recognition: null, // 语音识别对象
     };
   },
-  mounted() {
-    // 初始欢迎消息
-    this.messages = [
-      {
-        text: "你好！我是Timer智能助手，有什么我可以帮助你的吗？我可以帮你查看和管理日程。",
-        align: "left",
-      },
-    ];
+  async mounted() {
+    try {
+      // 异步获取服务器数据
+      const response = await GetDataFromServer(serverURL + "chat/remind");
+      
+      // 检查响应有效性
+      if (response?.data?.response) {
+        this.messages = [{
+          text: response.data.response,
+          align: "left"
+        }];
+      } else {
+        throw new Error("无效的服务器响应");
+      }
+    } catch (error) {
+      console.error("获取欢迎消息失败:", error);
+      // 设置默认消息
+      this.messages = [{
+        text: "您好，欢迎使用系统！",
+        align: "left"
+      }];
+    }
 
     // 尝试从localStorage获取保存的会话ID，如果没有则生成一个新的
     this.sessionId = localStorage.getItem("chat_session_id");
