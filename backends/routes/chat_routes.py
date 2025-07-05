@@ -203,25 +203,50 @@ def remind():
     from core.core import scheduler
     schedules = scheduler.get_running_schedules()
     today_schedules = []
-    target_date = (datetime.now() + timedelta(days=1)).date()
+    target_date = (datetime.now() + timedelta(days=0)).date()
     for schedule in schedules:
         schedule_date = datetime.strptime(schedule['content']['end_time'][0], '%Y-%m-%d').date()
         if schedule_date == target_date:
             today_schedules.append(schedule['content'])
 
-    ds_messages = [
-        {'role': 'system', 'content': '你是一个日程播报助手，负责播报用户今日的日程信息。要求：\n1. 以 Markdown 格式输出。\n2. 只播报日程内容，不需要其他信息。\n3.信息播报时，保持语言简洁，适当使用表情符号。'
-            '\n4. 只播报日程，不要多余。'},
-        {'role': 'user', 'content': f"需要播报的日程列表: {today_schedules}"}
-    ]
+    response = '📅今天的日程安排如下：\n\n'
+    for content in today_schedules:
+        response += f"📅{content['title']}\n"
 
-    client = OpenAI(api_key=current_app.config['DEEPSEEK_API_KEY'], base_url="https://api.deepseek.com")
-    ds_response = client.chat.completions.create(
-        model="deepseek-chat",
-        messages=ds_messages,  # type: ignore
-        stream=False,
-    )
+        if 'begin_time' in content and 'end_time' in content:
+            start_time = ' '.join(content['begin_time'])
+            start_time = datetime.strptime(start_time, '%Y-%m-%d %H:%M:%S').strftime('%m月%d日 %H:%M')
+            end_time = ' '.join(content['end_time'])
+            end_time = datetime.strptime(end_time, '%Y-%m-%d %H:%M:%S').strftime('%m月%d日 %H:%M')
+            response += f" - ⏰ {start_time} - {end_time}\n"
+        elif 'end_time' in content:
+            end_time = ' '.join(content['end_time'])
+            end_time = datetime.strptime(end_time, '%Y-%m-%d %H:%M:%S').strftime('%m月%d日 %H:%M')
+            response += f" - ⏰ {end_time}\n"
 
-    response = ds_response.choices[0].message.content.strip()  # type: ignore
+        if 'location' in content:
+            response += f" - 📍 {content['location']}\n"
+
+        if content.get('tag', 'default') != 'default':
+            response += f" - 🏷️  {content['tag']}"
+        
+        response += '\n\n'
+
+    # ds_messages = [
+    #     {'role': 'system', 'content': '你是一个日程播报助手，负责播报用户今日的日程信息。要求：\n1. 以 Markdown 格式输出。\n2. 只播报日程内容，不需要其他信息。\n3.信息播报时，保持语言简洁，适当使用表情符号。'
+    #         '\n4. 只播报日程，不要多余。'},
+    #     {'role': 'user', 'content': f"需要播报的日程列表: {today_schedules}"}
+    # ]
+
+    # client = OpenAI(api_key=current_app.config['DEEPSEEK_API_KEY'], base_url="https://api.deepseek.com")
+    # ds_response = client.chat.completions.create(
+    #     model="deepseek-chat",
+    #     messages=ds_messages,  # type: ignore
+    #     stream=False,
+    # )
+
+    # response = ds_response.choices[0].message.content.strip()  # type: ignore
+
+    print(response)
 
     return jsonify({'response': response}), 200
