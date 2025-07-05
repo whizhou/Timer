@@ -12,7 +12,8 @@ class Config:
 
     # private key settings
     DEEPSEEK_API_KEY = cur_dir.joinpath('deepseek_api_key.txt').read_text().strip()
-    SCHEDULE_JSON_PATH = cur_dir / '../data'
+    SCHEDULE_JSON_PATH = cur_dir / '../data/schedules'
+    AUTH_JSON_PATH = cur_dir / '../data/auth'
 
     # session settings
     SESSION_TYPE = 'filesystem'  # 使用文件系统存储会话

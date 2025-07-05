@@ -120,10 +120,10 @@ export default {
     // 计算属性
     const totalSchedules = computed(() => globalStore.UserSchedules.length);
     const completedSchedules = computed(() => 
-      globalStore.UserSchedules.filter(s => s.status).length
+      globalStore.UserSchedules.filter(s => s.finished).length
     );
     const uncompletedSchedules = computed(() => 
-      globalStore.UserSchedules.filter(s => !s.status).length
+      globalStore.UserSchedules.filter(s => !s.finished).length
     );
     const completionRate = computed(() => {
       if (totalSchedules.value === 0) return 0;
@@ -145,7 +145,7 @@ export default {
             };
           }
           groups[date].total++;
-          if (schedule.status) {
+          if (schedule.finished) {
             groups[date].completed++;
           } else {
             groups[date].uncompleted++;

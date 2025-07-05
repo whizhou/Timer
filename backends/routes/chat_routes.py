@@ -13,6 +13,15 @@ bp = Blueprint('chat', __name__, url_prefix='/chat')
 #     session.permanent = True  # 设置session为持久化
 #     session.modified = True
 
+@bp.before_request
+def check_logged_in():
+    """
+    Check if the user is logged in before processing the request.
+    If not logged in, return an error response.
+    """
+    if g.user is None:
+        return jsonify({'success': False, 'error': 'User not logged in.'}), 401
+
 @bp.route('/', methods=['POST'])
 def chat():
     """
