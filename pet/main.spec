@@ -2,10 +2,10 @@
 
 
 a = Analysis(
-    ['pet\\main.py'],
+    ['main.py'],
     pathex=[],
     binaries=[],
-    datas=[('pet/static', 'static')],
+    datas=[('static', 'static')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
