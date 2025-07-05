@@ -7,6 +7,7 @@ from PyQt5.QtWidgets import (QApplication, QWidget, QLabel, QLineEdit,
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont, QIcon, QColor
 import os
+BASE_URL = "http://127.0.0.1:5000"
 
 
 def get_session_id() -> str:
@@ -180,7 +181,7 @@ class LoginWindow(QWidget):
 
         try:
             response = requests.post(
-                'http://127.0.0.1:5000/auth/login',
+                BASE_URL + '/auth/login',
                 json={'username': username, 'password': password},
                 timeout=5
             )

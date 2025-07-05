@@ -183,8 +183,7 @@ class PetChatWindow(QWidget):
         self.user_avatar = None  # 用户头像路径
         self.id = id  # 桌宠ID
         # 使用头像文件夹下的图片作为桌宠头像
-
-        self.pet_avatar_path = project_root + "/pet/static/charactor/" + str(self.id) + "/头像/image.png"
+        self.pet_avatar_path = os.path.join(current_dir, "static/charactor/" + str(self.id) + "/头像/image.png")
         try:
             self.pet_avatar = self.pet_avatar_path
             print(f"使用头像: {self.pet_avatar}")
