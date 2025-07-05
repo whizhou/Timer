@@ -70,69 +70,44 @@ class ScheduleManager:
     
     def get_active_schedules(self) -> List[Dict[str, Any]]:
         """获取当前活跃的日程（未过期的日程）"""
-        self.update_schedules()
-        current_time = time.time()
         active_schedules = []
-        
-        print(self.schedules)
-        for schedule in self.schedules:
-            print("?",schedule)
-            content = schedule.get('content', {})
-            if 'end_time' in content:
-                end_time_str = ' '.join(content['end_time'])
-                try:
-                    end_timestamp = time.mktime(time.strptime(end_time_str, '%Y-%m-%d %H:%M'))
-                    if end_timestamp > current_time:
-                        active_schedules.append(schedule)
-                except ValueError:
-                    continue
-        
+        self.update_schedules()
+        active_schedules = self.schedules.copy()
         return active_schedules
     
     
     
     def get_active_schedule_count(self) -> int:
         """获取活跃日程数量"""
-        self.update_schedules()
+        # self.update_schedules()
         return len(self.get_active_schedules())
 
     def get_upcoming_schedules_summary(self) -> str:
-        """获取明天和后天截止的日程信息总结"""
-        active_schedules = self.get_active_schedules()
-        current_time = time.localtime()
-        tomorrow = time.localtime(time.time() + 24 * 3600)
-        day_after_tomorrow = time.localtime(time.time() + 48 * 3600)
-        
+        """获取明天和后天截止的日程信息"""
         tomorrow_schedules = []
         day_after_schedules = []
         
-        for schedule in active_schedules:
-            content = schedule.get('content', {})
-            if 'end_time' in content:
-                end_time_str = ' '.join(content['end_time'])
-                try:
-                    end_time = time.strptime(end_time_str, '%Y-%m-%d %H:%M')
-                    # 检查是否是明天截止
-                    if (end_time.tm_year == tomorrow.tm_year and 
-                        end_time.tm_mon == tomorrow.tm_mon and 
-                        end_time.tm_mday == tomorrow.tm_mday):
-                        tomorrow_schedules.append(content.get('title', '未命名日程'))
-                    # 检查是否是后天截止
-                    elif (end_time.tm_year == day_after_tomorrow.tm_year and 
-                          end_time.tm_mon == day_after_tomorrow.tm_mon and 
-                          end_time.tm_mday == day_after_tomorrow.tm_mday):
-                        day_after_schedules.append(content.get('title', '未命名日程'))
-                except ValueError:
-                    continue
+        try:
+            session_id = get_session_id()
+            if not session_id:
+                raise ValueError("Session ID is not set. Please log in first.")
+            response = requests.get(
+                f"{BASE_URL}/titles/1",
+                json={'schedules': self.schedules},
+                cookies={'session': session_id},
+            )
+            tomorrow_schedules = response.json()
+            response = requests.get(
+                f"{BASE_URL}/titles/2",
+                json={'schedules': self.schedules},
+                cookies={'session': session_id},
+            )
+            day_after_schedules = response.json()
+        except Exception as e:
+            print(f"Error updating schedules: {e}")
         
-        summary = []
-        if tomorrow_schedules:
-            for task in tomorrow_schedules:
-                summary.append(f"明天要完成{task}！")
-        if day_after_schedules:
-            for task in day_after_schedules:
-                summary.append(f"后天要完成{task}！")
-                
+        
+        summary = tomorrow_schedules + day_after_schedules
         return summary
     
 

@@ -16,7 +16,7 @@ class PetConfig:
     UPDATE_INTERVAL = 70  # 动画更新检查间隔(秒)
     
     # 待机动作相关配置
-    IDLE_ACTION_INTERVAL = 3  # 待机动作触发间隔(秒)
+    IDLE_ACTION_INTERVAL = 30  # 待机动作触发间隔(秒)
     IDLE_ACTION_DURATION = 3000  # 待机动作持续时间(毫秒)
     IDLE_ACTION_MIN_INTERVAL = 15  # 最小待机动作间隔(秒)
     IDLE_ACTION_MAX_INTERVAL = 60  # 最大待机动作间隔(秒)

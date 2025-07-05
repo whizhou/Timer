@@ -84,8 +84,9 @@ class PetConfig:
 
 ### 启动应用
 ```bash
-pyinstaller pet/main.spec
-./pet/dist/pet.exe
+cd pet
+pyinstaller main.spec
+./dist/pet.exe
 ```
 
 ### 交互方式

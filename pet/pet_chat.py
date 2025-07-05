@@ -525,7 +525,7 @@ class PetChatWindow(QWidget):
         try:
             response = response.json()["response"]
         except:
-            response = "正在开发中的ai回复信息，敬请期待..."
+            response = "出现了一些小问题~请检查网络连接并确认已经关联日程账号，或者稍后再试喵~"
 
         # # 深度思考模式下，可以给出更详细的回复
         # if self.use_deep_thinking:
