@@ -8,7 +8,7 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont, QIcon, QColor
 import os
 
-BASE_URL = "http://127.0.0.1:5000"
+BASE_URL = "https://whizhou.pythonanywhere.com/"
 
 
 def get_resource_path(relative_path):

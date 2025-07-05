@@ -11,7 +11,7 @@ from PyQt5.QtGui import QIcon, QPixmap, QColor, QPainter, QPen, QBrush, QFont, Q
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.dirname(current_dir)
-BASE_URL = "http://127.0.0.1:5000"
+BASE_URL = "https://whizhou.pythonanywhere.com/"
 
 class MessageBubble(QFrame):
     """聊天气泡组件"""

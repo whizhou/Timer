@@ -247,6 +247,6 @@ def remind():
 
     # response = ds_response.choices[0].message.content.strip()  # type: ignore
 
-    print(response)
+    # print(response)
 
     return jsonify({'response': response}), 200

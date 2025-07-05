@@ -8,7 +8,7 @@ import requests
 
 from pet_login import get_session_id
 
-BASE_URL = "http://127.0.0.1:5000"
+BASE_URL = "https://whizhou.pythonanywhere.com/"
 
 class ScheduleManager:
     """管理日程数据的类"""
