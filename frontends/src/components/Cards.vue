@@ -7,7 +7,7 @@
     >
       <template #header>
         <div class="card-header">
-          <span v-if="card.content!=undefined"><b>{{ card.content.title }}<span v-if="card.stauts==true">(Done)</span></b></span>
+          <span v-if="card.content!=undefined"><b>{{ card.content.title }}</b></span>
           <span v-else><b>无题</b></span>
           <edit-schedule :origin="card"></edit-schedule>
           <el-button 
@@ -15,11 +15,16 @@
             type="text" 
             @click="deleteCards(card.id)"
           >删除</el-button>
-          <el-button 
+          <span v-if="card.status!=true"><el-button 
             class="delete-btn" 
             type="text" 
             @click="done(card)"
-          ><span v-if="card.status==true">取消完成</span><span v-else>完成</span></el-button>
+          >完成</el-button></span>
+                    <span v-if="card.status!=true"><el-button 
+            class="delete-btn" 
+            type="text" 
+            @click="archieve(card)"
+          >归档</el-button></span>
         </div>
       </template>
       <div class="card-content">
@@ -59,15 +64,16 @@ const deleteCards = (id) => {
 
 async function done (card) {
     const index =GetScheduleIndex(card.id);
-    if (globalStore.UserSchedules[index].status!=true) {
-      globalStore.UserSchedules[index].status=true;
-      card.stauts=true;
-      await PutDataToServer('http://127.0.0.1:5000/'+"schedule/"+String(card.id),card)
-    } else {
-      globalStore.UserSchedules[index].status=false;
-      card.stauts=false;
-      await PutDataToServer('http://127.0.0.1:5000/'+"schedule/"+String(card.id),card)
-    }
+    globalStore.UserSchedules[index].finished=true;
+    card.finished=true;
+    await PutDataToServer('http://127.0.0.1:5000/'+"schedule/"+String(card.id),card)
+};
+
+async function archieve (card) {
+    const index =GetScheduleIndex(card.id);
+    globalStore.UserSchedules[index].archieve=true;
+    card.archieve=true;
+    await PutDataToServer('http://127.0.0.1:5000/'+"schedule/"+String(card.id),card)
 };
 
 </script>
