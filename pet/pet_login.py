@@ -6,6 +6,7 @@ from PyQt5.QtWidgets import (QApplication, QWidget, QLabel, QLineEdit,
                              QFrame, QGraphicsDropShadowEffect)
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont, QIcon, QColor
+import os
 
 
 def get_session_id() -> str:
@@ -26,60 +27,64 @@ class LoginWindow(QWidget):
     def init_ui(self):
         # 窗口基础设置
         self.setWindowTitle('用户登录系统')
-        self.setWindowIcon(QIcon(':/icons/login.png'))  # 需替换为实际图标路径
-        # 增大窗口尺寸
-        self.setFixedSize(600, 450)
+        self.setWindowIcon(QIcon(os.path.join(os.path.dirname(__file__), 'static/charactor/1/头像/image.png')))
+        self.setFixedSize(500, 400)
         
-        # 整体背景渐变
+        # 整体背景浅色
         self.setStyleSheet("""
             QWidget#background {
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
-                    stop:0 #6a11cb, stop:1 #2575fc);
+                background-color: #F2F3F5;
             }
             QFrame#card {
-                background-color: white;
-                border-radius: 12px;
+                background-color: #FFFFFF;
+                border-radius: 18px;
             }
             QLabel#title {
-                color: #333;
-                font-size: 32px;
+                color: #333333;
+                font-size: 28px;
                 font-weight: bold;
+                font-family: 'Microsoft YaHei', 'SimHei', 'sans-serif';
             }
             QLabel {
-                color: #555;
-                font-size: 16px;
+                color: #555555;
+                font-size: 15px;
                 min-width: 90px;
+                font-family: 'Microsoft YaHei', 'SimHei', 'sans-serif';
             }
             QLineEdit {
-                border: 1px solid #ccc;
-                border-radius: 6px;
-                padding: 8px 28px 8px 8px;
-                font-size: 16px;
-                background: #fafafa;
+                border: none;
+                border-radius: 12px;
+                padding: 10px 36px 10px 12px;
+                font-size: 15px;
+                background: #F2F3F5;
+                color: #333333;
+                font-family: 'Microsoft YaHei', 'SimHei', 'sans-serif';
             }
             QLineEdit:focus {
-                border: 1px solid #6a11cb;
-                background: #fff;
+                background: #FFFFFF;
+                border: 1.5px solid #5F6DF9;
             }
             QPushButton {
-                background-color: #6a11cb;
+                background-color: #5F6DF9;
                 color: white;
                 border: none;
-                border-radius: 6px;
-                padding: 14px 28px;
-                font-size: 16px;
+                border-radius: 15px;
+                padding: 10px 28px;
+                font-size: 15px;
+                font-family: 'Microsoft YaHei', 'SimHei', 'sans-serif';
             }
             QPushButton:hover {
-                background-color: #5b0fb8;
+                background-color: #4F5DD9;
             }
             QPushButton:pressed {
-                background-color: #4a0d93;
+                background-color: #3F4DC9;
             }
             QPushButton#resetBtn {
-                background-color: #e53935;
+                background-color: #E6E6E6;
+                color: #555555;
             }
             QPushButton#resetBtn:hover {
-                background-color: #d32f2f;
+                background-color: #CCCCCC;
             }
         """)
 
@@ -92,16 +97,15 @@ class LoginWindow(QWidget):
         # 卡片容器
         card = QFrame()
         card.setObjectName('card')
-        # 相应增加卡片尺寸
-        card.setFixedSize(480, 360)
-        shadow = QGraphicsDropShadowEffect(blurRadius=20, xOffset=0, yOffset=8)
-        shadow.setColor(QColor(0, 0, 0, 80))
+        card.setFixedSize(380, 300)
+        shadow = QGraphicsDropShadowEffect(blurRadius=30, xOffset=0, yOffset=10)
+        shadow.setColor(QColor(0, 0, 0, 60))
         card.setGraphicsEffect(shadow)
 
         # 卡片内部布局
         form_layout = QVBoxLayout(card)
-        form_layout.setContentsMargins(40, 40, 40, 40)
-        form_layout.setSpacing(25)
+        form_layout.setContentsMargins(36, 36, 36, 36)
+        form_layout.setSpacing(22)
 
         # 标题
         title = QLabel('欢迎登录')
@@ -112,23 +116,28 @@ class LoginWindow(QWidget):
         # 用户名
         user_layout = QHBoxLayout()
         lbl_user = QLabel('用户名:')
+        # user_icon_label = QLabel('👤')
+        # user_icon_label.setFixedWidth(10)
+        # user_icon_label.setAlignment(Qt.AlignCenter)
+        # user_icon_label.setStyleSheet('font-size: 18px;')
         edit_user = QLineEdit()
         edit_user.setPlaceholderText('请输入用户名')
-        # 添加图标Action
-        user_icon = QIcon(':/icons/user.png')  # 替换为实际路径
-        edit_user.addAction(user_icon, QLineEdit.LeadingPosition)
         user_layout.addWidget(lbl_user)
+        # user_layout.addWidget(user_icon_label)
         user_layout.addWidget(edit_user)
 
         # 密码
         pwd_layout = QHBoxLayout()
         lbl_pwd = QLabel('密码:')
+        # pwd_icon_label = QLabel('🔒')
+        # pwd_icon_label.setFixedWidth(10)
+        # pwd_icon_label.setAlignment(Qt.AlignCenter)
+        # pwd_icon_label.setStyleSheet('font-size: 18px;')
         edit_pwd = QLineEdit()
         edit_pwd.setPlaceholderText('请输入密码')
         edit_pwd.setEchoMode(QLineEdit.Password)
-        pwd_icon = QIcon(':/icons/lock.png')  # 替换为实际路径
-        edit_pwd.addAction(pwd_icon, QLineEdit.LeadingPosition)
         pwd_layout.addWidget(lbl_pwd)
+        # pwd_layout.addWidget(pwd_icon_label)
         pwd_layout.addWidget(edit_pwd)
 
         # 按钮行
