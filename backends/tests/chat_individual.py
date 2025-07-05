@@ -44,17 +44,17 @@ def test_pet_routes():
         print(f"Response for schedule/quantity/{i}:\n", response.json())
 
 def test_auth():
-    response = requests.post(
-        f"{BASE_URL}/auth/register",
-        json={'username': '321', 'password': '123'}
-    )
+    # response = requests.post(
+    #     f"{BASE_URL}/auth/register",
+    #     json={'username': '321', 'password': '123'}
+    # )
     response = requests.post(
         f"{BASE_URL}/auth/login",
-        json={'username': '321', 'password': '123'}
+        json={'username': 'testuser', 'password': '123'}
     )
     session_cookie = response.cookies.get('session')
     response = requests.get(
-        f'{BASE_URL}/schedule',
+        f'{BASE_URL}/schedule/remind_start',
         cookies={'session': session_cookie} if session_cookie else None
     )
     print("Response from /schedule with session cookie:", response.json())
@@ -78,5 +78,5 @@ def test_auth_json():
 if __name__ == "__main__":
     # test_independent_requests()
     # test_pet_routes()
-    # test_auth()
-    test_auth_json()
+    test_auth()
+    # test_auth_json()
