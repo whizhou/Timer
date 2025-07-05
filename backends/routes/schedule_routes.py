@@ -40,7 +40,19 @@ def schedule():
         # Return all schedules in a JSON file
         schedules: List[Dict] = scheduler.get_schedules()
         return jsonify({'schedules': schedules})
-    
+
+@bp.route('/running', methods=['GET'])
+def running_schedules():
+    """
+    Get the currently running schedules.
+
+    Returns:
+        JSON: {'schedules': List[Dict]} - The list of currently running schedules
+    """
+    from core.core import scheduler
+    running_schedules: List[Dict] = scheduler.get_running_schedules()
+    return jsonify({'schedules': [[running_schedules]]})
+
 @bp.route('/<int:schedule_id>', methods=['GET', 'PUT', 'DELETE'])
 def schedule_by_id(schedule_id: int):
     """

@@ -5,6 +5,9 @@ from typing import List, Dict, Any
 import threading
 import sys
 import requests
+
+from pet_login import get_session_id
+
 BASE_URL = "http://127.0.0.1:5000"
 
 class ScheduleManager:
@@ -31,9 +34,13 @@ class ScheduleManager:
     def update_schedules(self) -> None:
         """更新日程数据"""
         try:
-            response = requests.post(
-                f"{BASE_URL}/schedule/sync",
-            json={'schedules': self.schedules}
+            session_id = get_session_id()
+            if not session_id:
+                raise ValueError("Session ID is not set. Please log in first.")
+            response = requests.get(
+                f"{BASE_URL}/schedule/running",
+                json={'schedules': self.schedules},
+                cookies={'session': session_id},
             )
             self.schedules = response.json()
         except Exception as e:

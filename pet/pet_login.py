@@ -8,6 +8,16 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont, QIcon, QColor
 
 
+def get_session_id() -> str:
+    """从本地文件中读取会话ID"""
+    session_path = Path(__file__).parent.resolve() / 'data'
+    session_file = session_path / 'session.txt'
+    if session_file.exists():
+        with open(session_file, 'r', encoding='utf-8') as f:
+            return f.read().strip()
+    return ''
+
+
 class LoginWindow(QWidget):
     def __init__(self):
         super().__init__()

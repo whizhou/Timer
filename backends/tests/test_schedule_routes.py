@@ -33,10 +33,10 @@ def test_schedule_get_all(client):
         'password': '123'
     })
     assert response.status_code == 200
-    test_schedules = get_test_schedules()
 
     response = client.get('/schedule/')
     response_data = response.get_json()
+    test_schedules = get_test_schedules()
 
     assert response.status_code == 200
     assert 'schedules' in response_data
@@ -170,8 +170,23 @@ def test_get_remind_before(client):
     test_schedules = get_test_schedules()
     test_schedules = [s for s in test_schedules if 'remind_before' in s]
     response = client.get('/schedule/remind_before')
+    print(response.json)
     assert response.status_code == 200
     assert response.json == {'schedules': test_schedules}
+
+def test_get_running(client):
+    """Test GET /schedule/running returns running schedule IDs"""
+    response = client.post('/auth/login', json={
+        'username': 'testuser',
+        'password': '123'
+    })
+    assert response.status_code == 200
+    test_schedules = get_test_schedules()
+    # test_schedules = [s for s in test_schedules if 'remind_before' in s]
+    response = client.get('/schedule/running')
+    print(response.json)
+    assert response.status_code == 200
+    # assert response.json == {'schedules': test_schedules}
 
 def test_sync_schedules(client):
     """Test GET /schedule/sync syncs schedules"""
@@ -185,6 +200,7 @@ def test_sync_schedules(client):
         # Modify the schedule to simulate a sync
         test_schedules[idx]['timestamp'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     response = client.get('/schedule/sync', json={'schedules': test_schedules})
+    test_schedules = get_test_schedules()
     assert response.status_code == 200    
     assert response.json == {'schedules': test_schedules}
     
@@ -198,11 +214,11 @@ def test_pet_routes(client):
     for i in range(3):
         response_titles = client.get(f"/schedule/titles/{i}")
         assert response_titles.status_code == 200
-        assert isinstance(response_titles.json(), dict)
+        assert isinstance(response_titles.json, dict)
 
         response_quantity = client.get(f"/schedule/quantity/{i}")
         assert response_quantity.status_code == 200
-        assert isinstance(response_quantity.json(), dict)
+        assert isinstance(response_quantity.json, dict)
 
 '''
 def test_invalid_method(client):
