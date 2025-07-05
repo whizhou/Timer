@@ -514,9 +514,13 @@ class PetChatWindow(QWidget):
         response = ""
         lower_msg = "请模仿桌面宠物的语气回复，语气日常一点、不要太过热情，可以的话偶尔在每句话最后加个\"喵\":" + user_message.lower()
         
+        from pet_login import get_session_id
+        session_id = get_session_id()
+
         response = requests.post(
             f"{BASE_URL}/chat",
-            json={'message': lower_msg}
+            json={'message': lower_msg},
+            cookies={'session': session_id},
         )
         try:
             response = response.json()["response"]

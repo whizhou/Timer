@@ -7,7 +7,7 @@ from pathlib import Path
 
 class Database:
     def __init__(self):
-        self._auth: str | None = None  # Authentication object, type: str
+        self._auth: int | None = None  # Authentication object, type: str
         self._path: Path | None = None  # Path to the data file, type: Path
         self._file: dict = {}  # Cache for the file, type: dict
         self.settings: dict = {}  # Settings for the database, type: dict
@@ -17,6 +17,9 @@ class Database:
         Args:
             user_id (int): The user ID to authenticate.
         """
+        if self._auth is not None and self._auth == user_id:
+            # If already logged in with the same user_id, no need to re-login
+            return True
         if self._auth is not None:
             self.logout()
 
@@ -83,6 +86,8 @@ class Database:
         Returns:
             bool: True if the save operation was successful, False otherwise.
         """
+        if self._auth is None or self._path is None:
+            return False
         return self.write(self._file)
 
     def append(self, data: dict) -> bool:

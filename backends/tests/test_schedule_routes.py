@@ -30,7 +30,7 @@ def test_schedule_get_all(client):
     """Test GET /schedule/ returns all schedules"""
     response = client.post('/auth/login', json={
         'username': 'testuser',
-        'password': '123'
+        'password': '123123'
     })
     assert response.status_code == 200
 
@@ -48,7 +48,7 @@ def test_schedule_post_create(client):
     """Test POST /schedule/ creates a new schedule"""
     response = client.post('/auth/login', json={
         'username': 'testuser',
-        'password': '123'
+        'password': '123123'
     })
     assert response.status_code == 200
     for new_schedule in example_schedules:
@@ -69,7 +69,7 @@ def test_schedule_get_by_id_found(client):
     """Test GET /schedule/<id> returns schedule when found"""
     response = client.post('/auth/login', json={
         'username': 'testuser',
-        'password': '123'
+        'password': '123123'
     })
     assert response.status_code == 200
     for schedule in get_test_schedules():
@@ -83,7 +83,7 @@ def test_schedule_get_by_id_not_found(client):
     """Test GET /schedule/<id> returns 404 when not found"""
     response = client.post('/auth/login', json={
         'username': 'testuser',
-        'password': '123'
+        'password': '123123'
     })
     assert response.status_code == 200
     response = client.get('/schedule/999')
@@ -95,7 +95,7 @@ def test_schedule_update(client):
     """Test PUT /schedule/<id> updates schedule"""
     response = client.post('/auth/login', json={
         'username': 'testuser',
-        'password': '123'
+        'password': '123123'
     })
     assert response.status_code == 200
     test_schedules = get_test_schedules()
@@ -113,7 +113,7 @@ def test_schedule_delete(client):
     """Test DELETE /schedule/<id> deletes schedule"""
     response = client.post('/auth/login', json={
         'username': 'testuser',
-        'password': '123'
+        'password': '123123'
     })
     assert response.status_code == 200
     test_schedules = get_test_schedules()
@@ -131,7 +131,7 @@ def test_archive_schedule(client):
     """Test GET /schedule/archive/<id> archives schedule"""
     response = client.post('/auth/login', json={
         'username': 'testuser',
-        'password': '123'
+        'password': '123123'
     })
     assert response.status_code == 200
     test_schedules = get_test_schedules()
@@ -150,7 +150,7 @@ def test_get_remind_start(client):
     """Test GET /schedule/remind_start returns reminder IDs"""
     response = client.post('/auth/login', json={
         'username': 'testuser',
-        'password': '123'
+        'password': '123123'
     })
     assert response.status_code == 200
     test_schedules = get_test_schedules()
@@ -164,7 +164,7 @@ def test_get_remind_before(client):
     """Test GET /schedule/remind_before returns reminder IDs"""
     response = client.post('/auth/login', json={
         'username': 'testuser',
-        'password': '123'
+        'password': '123123'
     })
     assert response.status_code == 200
     test_schedules = get_test_schedules()
@@ -178,7 +178,7 @@ def test_get_running(client):
     """Test GET /schedule/running returns running schedule IDs"""
     response = client.post('/auth/login', json={
         'username': 'testuser',
-        'password': '123'
+        'password': '123123'
     })
     assert response.status_code == 200
     test_schedules = get_test_schedules()
@@ -192,7 +192,7 @@ def test_sync_schedules(client):
     """Test GET /schedule/sync syncs schedules"""
     response = client.post('/auth/login', json={
         'username': 'testuser',
-        'password': '123'
+        'password': '123123'
     })
     assert response.status_code == 200
     test_schedules = get_test_schedules()
@@ -208,7 +208,7 @@ def test_pet_routes(client):
     """Test GET /tomorrow/<id>/titles and /quantity routes"""
     response = client.post('/auth/login', json={
         'username': 'testuser',
-        'password': '123'
+        'password': '123123'
     })
     assert response.status_code == 200
     for i in range(3):

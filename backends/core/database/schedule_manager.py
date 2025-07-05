@@ -99,6 +99,16 @@ class ScheduleManager(Database):
                 new_id = max([s['id'] for s in self._file['schedules']], default=0) + 1
                 sched['id'] = new_id
 
+            if 'finished' not in sched:
+                # If no finished status is provided, set it to False
+                sched['finished'] = False
+            if 'archive' not in sched:
+                # If no archived status is provided, set it to False
+                sched['archive'] = False
+            if 'tag' not in sched['content'] or sched['content']['tag'] is None:
+                # If no tag is provided, set it to an empty list
+                sched['content']['tag'] = 'default'
+
             if 'timestamp' not in sched or sched['timestamp'] is None:
                 # If no timestamp is provided, set it to the current time
                 sched['timestamp'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')

@@ -12,7 +12,7 @@ def load_logged_in_user():
     user_id = session.get('user_id', None)
     if user_id is None:
         try:
-            user_id = request.get_json().get('user_id', None)
+            user_id = request.args.get('user_id', None)
         except:
             user_id = None
     # print(f"User ID from session: {user_id}")
