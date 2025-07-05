@@ -3,9 +3,18 @@ from flask import (
 )
 from flask import session
 from typing import List, Dict
+from datetime import datetime, timedelta
 
 bp = Blueprint('schedule', __name__, url_prefix='/schedule')
 
+@bp.before_request
+def check_logged_in():
+    """
+    Check if the user is logged in before processing the request.
+    If not logged in, return an error response.
+    """
+    if g.user is None:
+        return jsonify({'success': False, 'error': 'User not logged in.'}), 401
 
 @bp.route('/', methods=['GET', 'POST'])
 def schedule():
@@ -13,57 +22,37 @@ def schedule():
     Handle schedule requests.
 
     - GET: Return all schedules in a JSON file
-    - POST: Receive user input for task content, generate schedule and return JSON data
+    - POST: Create new schedules based on the provided content.
 
     Returns:
-    - GET: {'id': schedule_id}, where schedule_id is the ID of the created schedule
-    - POST: JSON data containing the schedule information in the following format:
+    - POST: {'ids': schedule_ids}, where ids is the list of IDs of the created schedules
+    - GET: JSON data containing the schedule information in the {'schedules': List[Dict]} format
 
-        {
-        "schedules": [
-            {
-                "id": "the id of the schedule",
-            "timestamp": "last modified time, in YYYY-MM-DD HH:MM:SS format",
-            "type": "schedule",
-            "content": {
-                "title": "the title of the schedule",
-                "content": "the content of the schedule (optional)",
-                "whole_day": "bool: whether the schedule is a whole day event",
-                "begin_time": ["YYYY-MM-DD", "HH:MM (default 08:00)"],
-                "end_time": ["YYYY-MM-DD", "HH:MM (default 23:59)"],
-                "location": "the location of the schedule (optional)",
-                "remind_before": "the time (in minutes) to remind before the schedule starts (optional)",
-                "tag": "the tag of the schedule (optional)",
-                "repeat": {
-                    "repeat": "bool: whether the schedule is a repeat event",
-                    "type": "the type of repeat (e.g., daily, weekly, monthly) (optional)",
-                    "every": "the interval of repeat (e.g., 1) (optional)",
-                    "repeat_until": ["YYYY-MM-DD", "HH:MM (default 23:59)"]
-                },
-                "additional_info": [
-                    "any additional information related to the schedule (optional)",
-                    "this can include links, notes, or any other relevant details",
-                    "without any specific format, just plain text"
-                ]
-            },
-            {
-                ...
-            }
-        ]
-        }
     """
-    from core.scheduler import scheduler
+    from core.core import scheduler
     if request.method == 'POST':
         data = request.get_json()
-        schedule_content = data.get('schedule')
+        schedules: List[Dict] = data.get('schedules', [])
         # Generate schedule based on user input
-        schedule_id = scheduler.create_schedule(schedule_content)
-        return jsonify({'id': schedule_id})
+        schedule_ids: List[int] = scheduler.create_schedule(schedules)
+        return jsonify({'ids': schedule_ids})
     else:
         # Return all schedules in a JSON file
-        schedules: Dict = scheduler.get_schedules()
-        return jsonify(schedules)
-    
+        schedules: List[Dict] = scheduler.get_schedules()
+        return jsonify({'schedules': schedules})
+
+@bp.route('/running', methods=['GET'])
+def running_schedules():
+    """
+    Get the currently running schedules.
+
+    Returns:
+        JSON: {'schedules': List[Dict]} - The list of currently running schedules
+    """
+    from core.core import scheduler
+    running_schedules: List[Dict] = scheduler.get_running_schedules()
+    return jsonify({'schedules': [[running_schedules]]})
+
 @bp.route('/<int:schedule_id>', methods=['GET', 'PUT', 'DELETE'])
 def schedule_by_id(schedule_id: int):
     """
@@ -77,20 +66,28 @@ def schedule_by_id(schedule_id: int):
     - PUT - JSON: {'success': True} if update was successful, otherwise {'success': False}
     - DELETE - JSON: {'success': True} if delete was successful, otherwise {'success': False}
     """
-    from core.scheduler import scheduler
+    from core.core import scheduler
     if request.method == 'GET':
         # Get schedule by ID
         schedule: Dict | None = scheduler.get_schedule_by_id(schedule_id)
-        if not schedule:
+        if schedule is None:
             return jsonify({'error': 'Schedule not found'}), 404
-        schedule = {'schedule': schedule}  # Wrap in a dictionary
-        return jsonify(schedule)
+        
+        return jsonify({'schedule': schedule})
+    
     elif request.method == 'PUT':
         # Update schedule by ID
         data = request.get_json()
-        updated_schedule = data.get('schedule')
-        success = scheduler.update_schedule(updated_schedule)
-        return jsonify({'success': success})
+        updated_schedule = data.get('schedule', None)
+
+        if updated_schedule is None:
+            return jsonify({'error': 'No schedule data provided'}), 400
+        elif not isinstance(updated_schedule, dict):
+            return jsonify({'error': 'Invalid schedule data format'}), 400
+        
+        success = scheduler.update_schedule(schedule_id, updated_schedule)
+        return jsonify({'success': success}) 
+    
     elif request.method == 'DELETE':
         # Delete schedule by ID
         success = scheduler.delete_schedule(schedule_id)
@@ -105,21 +102,32 @@ def archive_schedule(schedule_id: int):
     Returns:
         JSON: {'success': True/False}
     """
-    from core.scheduler import scheduler
+    from core.core import scheduler
     success = scheduler.archive_schedule(schedule_id)
     return jsonify({'success': success})
 
-@bp.route('/remind', methods=['GET'])
-def remind():
+@bp.route('/remind_start', methods=['GET'])
+def remind_start():
     """
-    Get the list of schedule IDs for reminders.
+    Get the schedules for reminders.
 
     Returns:
-        JSON: {'schedule_id_list': List contains schedule IDs}
+        JSON: {'schedules': schedules whose reminder is started}
     """
-    from core.scheduler import scheduler
-    schedule_id_list: List[int] = scheduler.get_reminders()
-    return jsonify({'schedule_id_list': schedule_id_list})
+    from core.core import scheduler
+    schedules = scheduler.get_remind_start()
+    return jsonify({'schedules': schedules})
+
+@bp.route('/remind_before', methods=['GET'])
+def remind():
+    """
+    Get the schedules that are becoming active or are active.
+    Returns:
+        JSON: {'schedules': schedules running or going to run}
+    """
+    from core.core import scheduler
+    schedules = scheduler.get_remind_before()
+    return jsonify({'schedules': schedules})
 
 @bp.route('/sync', methods=['GET'])
 def sync():
@@ -127,15 +135,69 @@ def sync():
     Sync schedules with the backend.
 
     Receive:
-        JSON: {'info': List[{'id': id, 'timestamp': timestamp}]}
+        List[Dict]: schedules - List of schedules to be synchronized
 
     Returns:
-
+        List[Dict]: The synchronized schedules
     """
-    from core.scheduler import scheduler
+    from core.core import scheduler
     data = request.get_json()
-    info = data.get('info')
-    assert type(info) == list, "info should be a list"
+    schedules: List[Dict] = data.get('schedules', [])
     # Synchronize schedules with the backend
-    schedules_to_sync: List[Dict] = scheduler.sync_schedules(info)
-    return jsonify({'schedules': schedules_to_sync})
+    schedules_synced: List[Dict] = scheduler.sync_schedules(schedules)
+    return jsonify({'schedules': schedules_synced})
+
+@bp.route('/quantity', methods=['GET'])
+def quantity():
+    """
+    Get the quantity of schedules.
+
+    Returns:
+        JSON: {'quantity': int} - The number of waiting or running schedules
+    """
+    from core.core import scheduler
+    quantity = scheduler.get_schedule_quantity()
+    return jsonify({'quantity': quantity})
+
+@bp.route('/titles/<int:days>', methods=['GET'])
+def tomorrow_titles(days: int):
+    """
+    Get the titles of schedules for tomorrow.
+
+    Returns:
+        JSON: {'titles': schedule titles for tomorrow}
+    """
+    from core.core import scheduler
+    schedules = scheduler.get_running_schedules()
+    titles = []
+    target_date = (datetime.now() + timedelta(days=days)).date()
+    for schedule in schedules:
+        schedule_date = datetime.strptime(schedule['content']['end_time'][0], '%Y-%m-%d').date()
+        if schedule_date == target_date:
+            titles.append(schedule['content']['title'])
+    # print(f"Titles for tomorrow ({days} days later): {titles}")
+    return jsonify({'titles': titles})
+
+@bp.route('/quantity/<int:days>', methods=['GET'])
+def tomorrow_quantity(days: int):
+    """
+    Get the quantity of schedules for tomorrow.
+
+    Returns:
+        JSON: {'quantity': int} - The number of schedules for tomorrow
+    """
+    from core.core import scheduler
+    schedules = scheduler.get_running_schedules()
+    target_date = (datetime.now() + timedelta(days=days)).date()
+    quantity = sum(1 for schedule in schedules if datetime.strptime(schedule['content']['end_time'][0], '%Y-%m-%d').date() == target_date)
+    return jsonify({'quantity': quantity})
+
+@bp.after_app_request
+def after_request(response):
+    """
+    After request to clean up resources.
+    """
+    # Here you can add any cleanup code if needed
+    from core.core import scheduler
+    scheduler.save()
+    return response

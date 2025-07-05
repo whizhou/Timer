@@ -1,4 +1,3 @@
-
 """
 桌宠UI界面模块
 负责桌宠的界面显示、动画播放和用户交互
@@ -19,13 +18,15 @@ project_root = os.path.dirname(current_dir)
 
 # 使用相对导入
 from pet_chat import PetChatWindow
+from pet_login import LoginWindow
 
 class DesktopPetUI(QLabel):
     """桌宠UI界面类"""
     
     def __init__(self, frame_folder: str, 
                  target_width: int = PetConfig.DEFAULT_PET_WIDTH, 
-                 target_height: int = PetConfig.DEFAULT_PET_HEIGHT):
+                 target_height: int = PetConfig.DEFAULT_PET_HEIGHT,
+                 loop_once: bool = False):
         """
         初始化桌宠UI
         
@@ -33,6 +34,7 @@ class DesktopPetUI(QLabel):
             frame_folder: 动画帧文件夹路径
             target_width: 目标宽度
             target_height: 目标高度
+            loop_once: 是否只播放一轮
         """
         super().__init__(None, Qt.WindowStaysOnTopHint | Qt.FramelessWindowHint)
         
@@ -51,6 +53,7 @@ class DesktopPetUI(QLabel):
         self.frames = self._load_frames(self.frame_folder)
         self.current_frame_index = 0
         self.is_exit_animation = False
+        self.loop_once = loop_once
         
         # 窗口设置
         self.target_width = target_width
@@ -176,6 +179,16 @@ class DesktopPetUI(QLabel):
                 else:
                     # 继续播放下一帧
                     self.current_frame_index += 1
+            elif self.loop_once:
+                # 只播放一轮
+                if self.current_frame_index >= len(self.frames) - 1:
+                    print(f"单次动画播放完成: {self.frame_folder}")
+                    if hasattr(self, '_on_animation_finished') and callable(self._on_animation_finished):
+                        # self.animation_timer.stop()
+                        self._on_animation_finished()
+                    return
+                else:
+                    self.current_frame_index += 1
             else:
                 # 普通动画循环播放
                 self.current_frame_index = (self.current_frame_index + 1) % len(self.frames)
@@ -183,19 +196,21 @@ class DesktopPetUI(QLabel):
         except Exception as e:
             print(f"更新动画帧失败: {e}")
 
-    def set_animation_folder(self, folder_path: str):
+    def set_animation_folder(self, folder_path: str, loop_once: bool = False):
         """
         切换动画帧文件夹
         
         Args:
             folder_path: 新的动画文件夹路径
+            loop_once: 是否只播放一轮
         """
-        print(f"切换动画文件夹到: {folder_path}")
+        print(f"切换动画文件夹到: {folder_path}, loop_once={loop_once}")
         self.frame_folder = folder_path
         self.frames = self._load_frames(self.frame_folder)
         self.current_frame_index = 0
         self.is_exit_animation = False
         self._exit_animation_finished = False
+        self.loop_once = loop_once
 
     def _set_exit_animation_folder(self, folder_path: str):
         """
@@ -364,6 +379,8 @@ class DesktopPetUI(QLabel):
         # 添加菜单项
         chat_action = menu.addAction("聊天")
         menu.addSeparator()
+        account_action = menu.addAction("关联日程管理账号")
+        menu.addSeparator()
         exit_action = menu.addAction("退出")
         
         # 显示菜单并获取选择的动作
@@ -372,6 +389,8 @@ class DesktopPetUI(QLabel):
         # 处理菜单动作
         if action == chat_action:
             self._handle_chat_action()
+        elif action == account_action:
+            self._handle_account_action()
         elif action == exit_action:
             self._handle_exit_action()
 
@@ -388,6 +407,16 @@ class DesktopPetUI(QLabel):
         # 通知控制器开始聊天
         if self.controller:
             self.controller.start_chat()
+
+    def _handle_account_action(self):
+        """处理关联日程管理账号动作"""
+        # 打开登录窗口
+        if hasattr(self, 'login_window') and self.login_window.isVisible():
+            self.login_window.activateWindow()
+        else:
+            self.login_window = LoginWindow()
+            self.login_window.setWindowModality(Qt.NonModal)
+            self.login_window.show()
 
     def _handle_exit_action(self):
         """处理退出动作"""

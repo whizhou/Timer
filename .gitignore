@@ -3,6 +3,7 @@
 *.pyc
 __pycache__/
 
+
 # instance/
 
 # .pytest_cache/
@@ -21,3 +22,6 @@ data/
 
 .pytest_cache/
 flask_session/
+timer_env/
+build/
+dist/

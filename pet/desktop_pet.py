@@ -1,4 +1,3 @@
-
 """
 桌宠数据模型
 管理桌宠的核心数据和状态
@@ -6,7 +5,6 @@
 import os
 from typing import Dict, Any, List, Tuple
 from config import PetConfig
-
 from mood import Mood
 from pet_action import PetAction
 
@@ -34,6 +32,7 @@ class DesktopPet:
         self.is_dragging = False
         self.is_chatting = False
         self.is_exiting = False
+        self.is_performing_idle_action = False  # 是否正在执行待机动作
         
         # 统计数据
         self.stats = {
@@ -125,6 +124,14 @@ class DesktopPet:
     def is_in_exiting_state(self) -> bool:
         """是否处于退出状态"""
         return self.is_exiting
+    
+    def set_idle_action_state(self, is_performing: bool):
+        """设置待机动作状态"""
+        self.is_performing_idle_action = is_performing
+    
+    def is_in_idle_action_state(self) -> bool:
+        """是否处于待机动作状态"""
+        return self.is_performing_idle_action
         
     def record_interaction(self):
         """记录互动次数"""
@@ -197,45 +204,3 @@ class DesktopPet:
     def __repr__(self) -> str:
         """详细字符串表示"""
         return self.__str__()
-=======
-    """桌宠类，管理宠物状态和行为"""
-    
-    def __init__(self, position, mood, actions=None, id=1):
-        self.position = position
-        self.mood = mood
-        self.actions = actions or []
-        self.id = id
-        self.stats = {
-            "interaction_count": 0,
-            "task_complete_count": 0
-        }
-
-    def changeMood(self, newMood):
-        """更新宠物的心情"""
-        self.mood = newMood
-        return self.mood
-
-    def performAction(self, action):
-        """执行宠物动作"""
-        print(f"执行动作: {action}")
-        return action
-        
-    def getPosition(self):
-        """获取宠物位置"""
-        return self.position
-        
-    def updatePosition(self, new_position):
-        """更新宠物位置"""
-        self.position = new_position
-        
-    def recordInteraction(self):
-        """记录互动次数"""
-        self.stats["interaction_count"] += 1
-        
-    def recordTaskCompletion(self):
-        """记录任务完成次数"""
-        self.stats["task_complete_count"] += 1
-        
-    def getStats(self):
-        """获取宠物统计信息"""
-        return self.stats
