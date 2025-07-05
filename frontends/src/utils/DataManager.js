@@ -69,7 +69,8 @@ function GetDataFromServer (TargetURL) {
     return axios({
         method : 'get',
         url : TargetURL,
-        data : { user_id : globalStore.UserID },
+        // data : { user_id : globalStore.UserID },
+        params : { user_id : globalStore.UserID },
         // withCredentials : true,
     }).then((res)=>{
         return res;
@@ -84,7 +85,8 @@ function PostDataToServer (TargetURL,DATA) {
     return axios({
         method : 'post',
         url : TargetURL,
-        data : { ...DATA, user_id : globalStore.UserID },
+        data : DATA,
+        params : { user_id : globalStore.UserID },
         withCredentials : true,
     }).then((res)=>{
         return res;
@@ -97,7 +99,8 @@ function PutDataToServer (TargetURL,DATA) {
     return axios({
         method : 'put',
         url : TargetURL,
-        data : { schedule : DATA , user_id : globalStore.UserID },
+        data : { schedule : DATA },
+        params : { user_id : globalStore.UserID },
         withCredentials : true,
     }).then((res)=>{
         return res;
@@ -110,7 +113,8 @@ function DeleteFromServer (TargetURL) {
     return axios({
         method : 'delete',
         url : TargetURL,
-        data : { user_id : globalStore.UserID },
+        // data : { user_id : globalStore.UserID },
+        params : { user_id : globalStore.UserID },
         withCredentials : true,
     }).then((res)=>{
         return res;
@@ -121,7 +125,8 @@ function SyncFromServer() {
   return axios({
     method: 'get',
     url: serverURL + "schedule/",
-    data : { user_id : globalStore.UserID },
+    // data : { user_id : globalStore.UserID },
+    params : { user_id : globalStore.UserID },
     withCredentials : true,
   }).then((res) => {
     globalStore.UserSchedules = res.data.schedules;
