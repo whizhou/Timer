@@ -46,7 +46,7 @@
 <script setup>
 import globalStore from '@/utils/GlobalStore';
 import Trans from '@/utils/Trans';
-import { DeleteSchedule,GetScheduleIndex,PutDataToServer } from '../utils/DataManager';
+import { DeleteSchedule,GetScheduleIndex,PutDataToServer,serverURL } from '../utils/DataManager';
 import EditSchedule from './EditSchedule.vue';
 
 import { ref, watch } from 'vue';
@@ -66,14 +66,14 @@ async function done (card) {
     const index =GetScheduleIndex(card.id);
     globalStore.UserSchedules[index].finished=true;
     card.finished=true;
-    await PutDataToServer('http://127.0.0.1:5000/'+"schedule/"+String(card.id),card)
+    await PutDataToServer(serverURL+"schedule/"+String(card.id),card)
 };
 
 async function archieve (card) {
     const index =GetScheduleIndex(card.id);
     globalStore.UserSchedules[index].archieve=true;
     card.archieve=true;
-    await PutDataToServer('http://127.0.0.1:5000/'+"schedule/"+String(card.id),card)
+    await PutDataToServer(serverURL+"schedule/"+String(card.id),card)
 };
 
 </script>

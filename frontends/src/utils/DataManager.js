@@ -2,7 +2,7 @@
 import axios from "axios"
 import globalStore from "./GlobalStore"
 
-const serverURL = 'http://127.0.0.1:5000/';
+const serverURL = 'https://whizhou.pythonanywhere.com/';
 
 async function AddSchedule(data) {
     if (data.finished == undefined)

@@ -76,7 +76,7 @@ const router = useRouter();
 const form = reactive({
   username: '',
   password: '',
-  serverURL: 'http://127.0.0.1:5000/'
+  serverURL: 'https://whizhou.pythonanywhere.com/'
 })
 
 // 表单验证规则
