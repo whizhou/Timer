@@ -448,22 +448,23 @@ export default {
         };
 
         // 发送请求到后端API
-        const queryP = new URLSearchParams({user_id:globalStore.UserID}).toString();
+        // const queryP = new URLSearchParams({user_id:globalStore.UserID}).toString();
 
-        const response = await fetch("/chat?"+queryP, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({...requestData,user_id:globalStore.UserID}),
-          credentials: "include", // 仍然包含cookie作为备选
-        });
+        // const response = await fetch("/chat?"+queryP, {
+        //   method: "POST",
+        //   headers: {
+        //     "Content-Type": "application/json",
+        //   },
+        //   body: JSON.stringify({...requestData,user_id:globalStore.UserID}),
+        //   credentials: "include", // 仍然包含cookie作为备选
+        // });
+        const response = await PostDataToServer(serverURL+"chat/",requestData)
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
+        // if (!response.ok) {
+        //   throw new Error(`HTTP error! Status: ${response.status}`);
+        // }
 
-        const data = await response.json();
+        const data = await response.data;
 
         // 移除加载状态消息
         this.messages.pop();
