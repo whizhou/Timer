@@ -19,6 +19,8 @@ class ScheduleManager:
         self.schedules = []
         self.last_update_time = 0
         self.update_interval = update_interval
+        self.count = 0
+        self.summary = []
     #     self._start_update_thread()
     
     # def _start_update_thread(self):
@@ -84,6 +86,11 @@ class ScheduleManager:
 
     def get_upcoming_schedules_summary(self) -> str:
         """获取明天和后天截止的日程信息"""
+        if self.count != 0:
+            self.count = (self.count + 1) % 50
+            return self.summary
+        
+        self.count = (self.count + 1) % 50
         tomorrow_schedules = []
         day_after_schedules = []
         
@@ -107,8 +114,8 @@ class ScheduleManager:
             print(f"Error updating schedules: {e}")
         
         
-        summary = tomorrow_schedules + day_after_schedules
-        return summary
+        self.summary = tomorrow_schedules + day_after_schedules
+        return self.summary
     
 
 print(ScheduleManager().get_upcoming_schedules_summary())
