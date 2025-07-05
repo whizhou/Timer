@@ -67,6 +67,8 @@ import axios from 'axios' // 确保已安装axios
 // import { ModifyServerURL } from '@/utils/DataManager'
 import { useRouter } from 'vue-router'
 import globalStore from "../utils/GlobalStore"
+import Cookies from 'js-cookie'
+import { SyncFromServer } from '@/utils/DataManager'
 
 const router = useRouter();
 
@@ -146,6 +148,8 @@ const handleLogin = async () => {
       ElMessage.success('登录成功')
     //   ModifyServerURL(form.serverURL);
       globalStore.UserID = result.user_id;
+      Cookies.set("user_id",globalStore.UserID);
+      SyncFromServer();
       router.push("/home");
     } else {
       // 登录失败处理

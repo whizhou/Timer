@@ -65,15 +65,29 @@
         
         <el-form-item label="类型">
           <el-select v-model="form.content.tag" placeholder="请选择类型">
-            <el-option label="工作" value="work"></el-option>
-            <el-option label="学习" value="study"></el-option>
-            <el-option label="生活" value="life"></el-option>
-            <el-option label="娱乐" value="entertainment"></el-option>
+            <el-option label="工作" value="工作"></el-option>
+            <el-option label="学习" value="学习"></el-option>
+            <el-option label="生活" value="生活"></el-option>
+            <el-option label="娱乐" value="娱乐"></el-option>
           </el-select>
+        </el-form-item>
+
+        <el-form-item label="完成情况">
+          <el-radio-group v-model="form.finished" @change="setArchive">
+            <el-radio :value="true">已完成</el-radio>
+            <el-radio :value="false">未完成</el-radio>
+          </el-radio-group>
+        </el-form-item>
+
+        <el-form-item label="归档情况">
+          <el-radio-group v-model="form.archive" :disabled="form.finished">
+            <el-radio :value="true">已归档</el-radio>
+            <el-radio :value="false">未归档</el-radio>
+          </el-radio-group>
         </el-form-item>
         
         <el-form-item>
-          <el-button type="primary" @click="submit" :loading="submitting">提交</el-button>
+          <el-button type="primary" @click="submit" :loading="submitting">确认</el-button>
           <el-button @click="cancel">取消</el-button>
         </el-form-item>
       </el-form>
@@ -91,6 +105,8 @@ import dayjs from 'dayjs'
 
 // 初始表单数据
 const initialForm = {
+  finished: false,
+  archive: false,
   content: {
     tag: "",
     title: "",
@@ -130,6 +146,13 @@ export default {
     tempEndTime() { this.updateTimeArray('end_time') },
   },
   methods: {
+    // 处理归档问题
+
+    setArchive () {
+      if (this.form.finished==true)
+        this.form.archive=true;
+    },
+
     // 更新时间数组
     updateTimeArray(field) {
       this.form.content[field] = [
@@ -144,6 +167,12 @@ export default {
       
       this.OriginId = cloneDeep(this.origin.id);
       this.form = cloneDeep(initialForm);
+
+      this.form.finished = cloneDeep(this.origin.finished);
+      this.form.archive = cloneDeep(this.origin.archive);
+
+      console.log(this.form.finished);
+      console.log(this.form.archive);
       
       // 设置临时时间变量
       this.tempBeginDate = this.origin.content.begin_time?.[0] || "";
@@ -208,6 +237,8 @@ export default {
         
         console.log("Adding new schedule...");
         const retValue = await AddSchedule({
+          finished: this.form.finished,
+          archive: this.form.archive,
           content: filteredContent
         });
         console.log("AddSchedule result:", retValue);

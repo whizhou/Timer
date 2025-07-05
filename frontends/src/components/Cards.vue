@@ -15,7 +15,7 @@
             type="text" 
             @click="deleteCards(card.id)"
           >删除</el-button>
-          <span v-if="card.status!=true"><el-button 
+          <!-- <span v-if="card.status!=true"><el-button 
             class="delete-btn" 
             type="text" 
             @click="done(card)"
@@ -24,7 +24,7 @@
             class="delete-btn" 
             type="text" 
             @click="archieve(card)"
-          >归档</el-button></span>
+          >归档</el-button></span> -->
         </div>
       </template>
       <div class="card-content">

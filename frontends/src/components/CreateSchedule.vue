@@ -57,10 +57,10 @@
         
         <el-form-item label="类型">
           <el-select v-model="form.content.tag" placeholder="请选择类型">
-            <el-option label="工作" value="work"></el-option>
-            <el-option label="学习" value="study"></el-option>
-            <el-option label="生活" value="life"></el-option>
-            <el-option label="娱乐" value="entertainment"></el-option>
+            <el-option label="工作" value="工作"></el-option>
+            <el-option label="学习" value="学习"></el-option>
+            <el-option label="生活" value="生活"></el-option>
+            <el-option label="娱乐" value="娱乐"></el-option>
           </el-select>
         </el-form-item>
         
