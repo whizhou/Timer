@@ -92,17 +92,17 @@ class ScheduleManager:
             if not session_id:
                 raise ValueError("Session ID is not set. Please log in first.")
             response = requests.get(
-                f"{BASE_URL}/titles/1",
-                json={'schedules': self.schedules},
+                f"{BASE_URL}/schedule/titles/1",
+                # json={'schedules': self.schedules},
                 cookies={'session': session_id},
             )
-            tomorrow_schedules = response.json()
+            tomorrow_schedules = response.json()['titles']
             response = requests.get(
-                f"{BASE_URL}/titles/2",
-                json={'schedules': self.schedules},
+                f"{BASE_URL}/schedule/titles/2",
+                # json={'schedules': self.schedules},
                 cookies={'session': session_id},
             )
-            day_after_schedules = response.json()
+            day_after_schedules = response.json()['titles']
         except Exception as e:
             print(f"Error updating schedules: {e}")
         

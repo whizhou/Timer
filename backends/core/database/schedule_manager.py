@@ -45,13 +45,13 @@ class ScheduleManager(Database):
         for schd in self._file.get('schedules', []):
             if schd.get('finished', False) or schd.get('archive', False):
                 continue
-            print(f"Checking schedule: {schd['id']}, content: {schd['content']}")
+            # print(f"Checking schedule: {schd['id']}, content: {schd['content']}")
             end_time = ' '.join(schd['content']['end_time']).strip()
             end_time = datetime.strptime(end_time, '%Y-%m-%d %H:%M:%S')
             if end_time > datetime.now():
                 running_schedules.append(schd)
             
-        print(f"Running schedules: {running_schedules}")
+        # print(f"Running schedules: {running_schedules}")
 
         return running_schedules
 
@@ -264,5 +264,5 @@ class ScheduleManager(Database):
         Returns:
             int: The total number of schedules.
         """
-        return len(self._file.get('schedules', []))
+        return len(self.get_running_schedules())
 

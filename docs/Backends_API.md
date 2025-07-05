@@ -200,7 +200,7 @@
 
   + **Response**：同上
 
-### URL: `titles/<int:days>`
+### URL: `/schedule/titles/<int:days>`
 
 + **Methods**: `GET` - 获取 days 天的日程标题
 
