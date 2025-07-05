@@ -7,8 +7,8 @@ const serverURL = 'http://127.0.0.1:5000/';
 async function AddSchedule(data) {
     if (data.finished == undefined)
         data.finished = false;
-    if (data.archieve == undefined)
-        data.archieve = false;
+    if (data.archive == undefined)
+        data.archive = false;
     const maxId = globalStore.UserSchedules.reduce((max, item) => 
         Math.max(max, item.id), 0);
     const newId = maxId + 1;
