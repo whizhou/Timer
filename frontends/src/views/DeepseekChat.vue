@@ -201,7 +201,7 @@ export default {
       this.sessionId = this.generateSessionId();
       localStorage.setItem("chat_session_id", this.sessionId);
     }
-    console.log("当前会话ID:", this.sessionId);
+    // console.log("当前会话ID:", this.sessionId);
 
     // 获取用户日程
     this.fetchSchedules();
@@ -470,7 +470,7 @@ export default {
         this.messages.pop();
 
         // 添加AI回复
-        console.log(data);
+        // console.log(data);
         if (data.schedule==undefined)
           this.messages.push({ text: data.response, align: "left" });
         else this.messages.push({ text: data.response, align: "left", schedule: data.schedule });
@@ -479,7 +479,7 @@ export default {
         if (data.session_id) {
           this.sessionId = data.session_id;
           localStorage.setItem("chat_session_id", data.session_id);
-          console.log("保存会话ID:", data.session_id);
+          // console.log("保存会话ID:", data.session_id);
         }
 
         this.scrollToBottom();
@@ -586,7 +586,7 @@ export default {
         await SyncFromServer()
         this.schedules = cloneDeep(globalStore.UserSchedules);
       } catch {
-        console.log("error!");
+        // console.log("error!");
       }
     },
 
