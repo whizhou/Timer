@@ -1,0 +1,7 @@
+flask
+openai
+pyyaml
+requests
+pytest
+Flask-Session
+flask_cors

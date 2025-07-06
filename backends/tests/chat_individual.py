@@ -1,7 +1,8 @@
 import requests
 import time
 
-BASE_URL = "http://127.0.0.1:5000"
+# BASE_URL = "http://127.0.0.1:5000"
+BASE_URL = "https://whizhou.pythonanywhere.com/"
 
 def test_independent_requests():
     # 第一次请求（会创建会话文件）
@@ -46,7 +47,7 @@ def test_pet_routes():
 def test_auth():
     # response = requests.post(
     #     f"{BASE_URL}/auth/register",
-    #     json={'username': '321', 'password': '123'}
+    #     json={'username': 'testuser', 'password': '123123'}
     # )
     response = requests.post(
         f"{BASE_URL}/auth/login",
@@ -91,6 +92,6 @@ def test_chat_remind():
 if __name__ == "__main__":
     # test_independent_requests()
     # test_pet_routes()
-    # test_auth()
+    test_auth()
     # test_auth_json()
-    test_chat_remind()
+    # test_chat_remind()
