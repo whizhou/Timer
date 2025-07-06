@@ -2,9 +2,20 @@
 
 ## 项目概述
 
-这是一个基于PyQt5的桌面宠物应用程序，具有智能交互、动画播放、心情管理等功能。
+这是一个基于PyQt5的桌面宠物应用程序，具有智能交互、动画播放、心情管理、日程管理等功能。桌宠能够根据用户的日程安排自动调整心情，并提供丰富的交互体验。
 
 ## 新增功能
+
+### 🔄 刷新桌宠状态
+- 在右键菜单中新增"刷新桌宠状态"选项
+- 点击后调用ScheduleManager的update_schedules()方法更新最新日程数据
+- 支持手动刷新桌宠的日程状态
+
+### 🏗️ 单例模式ScheduleManager
+- ScheduleManager类采用单例模式设计
+- 确保全局只有一个ScheduleManager实例
+- 所有ScheduleManager对象共享相同的内部状态数据
+- 提高系统性能和内存使用效率
 
 ### 🎬 退出动画
 - 当用户点击右键菜单中的"退出"时，桌宠会根据当前的ID和心情状态播放对应的退出动画
@@ -16,6 +27,7 @@
 - **配置管理**：统一的配置文件管理所有常量和路径
 - **类型注解**：添加完整的类型注解，提高代码可读性
 - **错误处理**：增强的异常处理和日志输出
+- **单例模式**：ScheduleManager采用单例模式，优化资源管理
 
 ## 项目结构
 
@@ -29,8 +41,9 @@ pet/
 ├── mouse_event_handler.py     # 鼠标事件处理
 ├── mood.py                    # 心情管理
 ├── pet_action.py              # 动作管理
-├── schedule_manager.py        # 日程管理
+├── schedule_manager.py        # 日程管理（单例模式）
 ├── pet_chat.py                # 聊天功能
+├── pet_login.py               # 登录功能
 ├── Bubble.py                  # 气泡消息
 └── static/                    # 静态资源
     └── charactor/             # 角色动画
@@ -40,10 +53,11 @@ pet/
             ├── chat/          # 聊天动画
             ├── switch_up/     # 心情变好动画
             ├── switch_down/   # 心情变差动画
-            └── finish_work/   # 退出动画 ⭐ 新增
-                ├── Happy/     # 开心状态退出动画
-                ├── Normal/    # 正常状态退出动画
-                └── PoorCondition/ # 忙碌状态退出动画
+            ├── finish_work/   # 完成工作动画
+            ├── shutdown/      # 退出动画
+            ├── hunger/        # 饥饿动画
+            ├── think/         # 思考动画
+            └── study/         # 学习动画
 ```
 
 ## 核心模块说明
@@ -56,7 +70,14 @@ class PetConfig:
         STAND = "stand"
         DRAG = "drag"
         CHAT = "chat"
-        FINISH_WORK = "finish_work"  # 新增退出动画
+        STUDY = "study"
+        WALK = "walk"
+        SWITCH_UP = "switch_up"
+        SWITCH_DOWN = "switch_down"
+        FINISH_WORK = "finish_work"
+        SHUTDOWN = "shutdown"
+        HUNGER = "hunger"
+        THINK = "think"
     
     # 心情类型
     class MoodType:
@@ -65,20 +86,43 @@ class PetConfig:
         POOR_CONDITION = "PoorCondition"
 ```
 
-### 2. desktop_pet.py - 数据模型
+### 2. schedule_manager.py - 日程管理（单例模式）
+```python
+@singleton
+class ScheduleManager:
+    """管理日程数据的单例类"""
+    
+    def __init__(self, update_interval: int = 3):
+        # 检查是否已经初始化过
+        if hasattr(self, '_initialized'):
+            return
+        # ... 初始化代码
+        self._initialized = True
+    
+    def update_schedules(self) -> None:
+        """更新日程数据"""
+    
+    def get_upcoming_schedules_summary(self, right_now = False, days = SCHEDULE_REMINDER_DAYS) -> str:
+        """获取未来days天截止的日程信息"""
+```
+
+### 3. desktop_pet.py - 数据模型
 - 管理桌宠的核心数据和状态
 - 支持状态切换和统计信息
 - 提供动画路径自动计算
+- 支持待机动作状态管理
 
-### 3. desktop_pet_controller.py - 控制器
+### 4. desktop_pet_controller.py - 控制器
 - 核心业务逻辑控制
 - 动画状态管理
-- 退出流程控制 ⭐ 新增
+- 退出流程控制
+- 待机动作管理
 
-### 4. desktop_pet_ui.py - UI界面
+### 5. desktop_pet_ui.py - UI界面
 - 界面渲染和交互
-- 退出动画播放 ⭐ 新增
+- 退出动画播放
 - 气泡消息显示
+- 右键菜单管理（包括刷新桌宠状态功能）
 
 ## 使用方法
 
@@ -91,13 +135,13 @@ pyinstaller main.spec
 
 ### 交互方式
 1. **单击** - 显示随机消息
-2. **双击** - 启用拖拽模式
-3. **拖拽** - 移动桌宠位置
+2. **双击** - 双击桌宠，等待桌宠进入可拖拽模式；随后拖拽即可移动桌宠位置
 4. **右键菜单**：
-   - 聊天 - 打开聊天窗口
-   - 关联日程管理账号 - 打开登录窗口，关联日程管理账号 ⭐ 新增
-   - 退出 - 播放退出动画后关闭 ⭐ 新增功能
-
+   - 聊天 - 打开聊天窗口，和桌宠进行对话
+     - 已上线的特定互动词：“陪我学习吧” “休息一下吧”，可以触发桌宠特殊动画
+   - 刷新桌宠状态 - 手动更新日程数据
+   - 关联日程管理账号 - 打开登录窗口，关联日程管理账号
+   - 退出 - 播放退出动画后关闭
 
 ## 配置选项
 
@@ -107,6 +151,8 @@ pyinstaller main.spec
 - `EXIT_ANIMATION_DURATION` - 退出动画播放时长（毫秒）
 - `HOVER_DELAY` - 悬停延迟时间（毫秒）
 - `BUBBLE_MAX_WIDTH` - 气泡最大宽度（像素）
+- `SCHEDULE_REMINDER_DAYS` - 日程提醒天数（默认3天）
+- `IDLE_ACTION_INTERVAL` - 待机动作触发间隔（秒）
 
 ## 心情系统
 
@@ -117,6 +163,18 @@ pyinstaller main.spec
 
 心情变化时会播放相应的过渡动画。
 
+## 日程管理系统
+
+### 单例模式优势
+- **唯一实例**：全局只有一个ScheduleManager实例
+- **共享状态**：所有对象共享相同的日程数据
+- **线程安全**：确保在多线程环境下的数据一致性
+- **内存优化**：避免重复创建对象，节省内存
+
+### 日程数据更新
+- 支持手动刷新：通过右键菜单"刷新桌宠状态"
+- 自动获取：从后端API获取未来3天的日程信息
+- 状态同步：桌宠心情根据日程数量自动调整
 
 ## 待机动作功能
 
@@ -128,7 +186,7 @@ pyinstaller main.spec
 - **多种动作**：支持完成工作、思考、饥饿、学习、散步等多种待机动作
 - **智能避让**：在拖拽或聊天时不会触发待机动作
 - **个性化消息**：每种待机动作都有对应的可爱消息
-- **动画支持**：使用现有的动画资源，如finish_work文件夹等
+- **动画支持**：使用现有的动画资源
 
 ### 配置方法
 
@@ -151,26 +209,6 @@ PetConfig.set_idle_action_duration(4000)  # 设置为4秒
 - `study` - 学习动作
 - `walk` - 散步动作
 
-### 添加新的待机动作
-
-1. 在`static/charactor/{pet_id}/`目录下添加新的动作文件夹
-2. 在`config.py`的`IdleActionType`类中添加新的动作类型
-3. 在控制器的`_get_idle_action_message`方法中添加对应的消息
-
-### 配置参数说明
-
-- `IDLE_ACTION_INTERVAL`: 待机动作触发间隔（默认30秒）
-- `IDLE_ACTION_DURATION`: 待机动作持续时间（默认3000毫秒）  
-- `IDLE_ACTION_MIN_INTERVAL`: 最小待机动作间隔（15秒）
-- `IDLE_ACTION_MAX_INTERVAL`: 最大待机动作间隔（60秒）
-
-### 注意事项
-
-- 待机动作只会在桌宠空闲时触发（非拖拽、非聊天状态）
-- 系统会自动检测动画文件夹是否存在，只使用可用的动作
-- 待机动作结束后会自动恢复到默认站立状态
-
-
 ## 开发说明
 
 ### 代码风格
@@ -178,18 +216,27 @@ PetConfig.set_idle_action_duration(4000)  # 设置为4秒
 - 遵循PEP 8编码规范
 - 详细的文档字符串
 - 模块化设计原则
+- 单例模式应用
 
 ### 扩展功能
 1. 添加新的动画类型：在 `PetConfig.AnimationType` 中定义
 2. 添加新的心情状态：在 `PetConfig.MoodType` 中定义
 3. 自定义交互行为：修改控制器中的事件处理方法
+4. 扩展日程管理：在ScheduleManager中添加新的方法
 
 ## 依赖库
 
 - PyQt5 - GUI框架
+- requests - HTTP请求
 - 其他标准库
 
 ## 版本历史
+
+### v2.1 - 单例模式优化版本
+- ✨ 新增刷新桌宠状态功能
+- 🏗️ ScheduleManager改为单例模式
+- 🔧 优化内存使用和性能
+- 📝 完善文档和注释
 
 ### v2.0 - 重构版本
 - ✨ 新增退出动画功能
