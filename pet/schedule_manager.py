@@ -129,9 +129,11 @@ class ScheduleManager:
         """获取未来days天截止的日程信息数量"""
         return len(self.get_upcoming_schedules_summary(right_now=right_now, days=days))
     
-print("1")
+
+# 测试
+# print("1")
 ScheduleManager().update_schedules()
-print("2")
-print(ScheduleManager().get_active_schedules())
-print("3")
-print(ScheduleManager().get_upcoming_schedules_summary(right_now=True))
+# print("2")
+# print(ScheduleManager().get_active_schedules())
+# print("3")
+# print(ScheduleManager().get_upcoming_schedules_summary(right_now=True))
