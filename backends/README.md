@@ -2,7 +2,9 @@
 
 Contain backend codes for Timer
 
-目前已经完成了基本的日程管理功能，可以完成创建、修改、删除、归档等操作。
+已经完成了基本的日程管理功能，可以完成创建、修改、删除、归档等操作。完成了AI Agent以及大模型对话接口。
+
+目前已通过 PythonAnywhere，完成了后端的生产部署。
 
 ## 运行后端
 
@@ -57,10 +59,6 @@ http://127.0.0.1:5000/schedule/archive/2
 + [chat_routes.py](/backends/routes/chat_routes.py) 定义了大模型对话相关接口。
 
 具体交互方式可以参考测试代码 [test_routes.py](/backends/tests/test_schedule_routes.py) 和 [test_chat.py](/backends/tests/test_chat.py)
-
-目前 `chat` 功能为普通的大模型对话，后端会保存所有对话历史到本地文件系统 (路径 `backends/data/chat_session`)
-
-对于多轮对话，使用 cookie 的 session-id 区分不同的对话历史。对于桌宠调用，可以参考 [chat_individual.py](/backends/tests/chat_individual.py) 进行调用。
 
 ## 测试
 
