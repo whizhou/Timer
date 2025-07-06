@@ -1,9 +1,13 @@
-#!/usr/bin/env python3
+
 """
 退出动画修复验证脚本
 """
 import sys
 import os
+
+# 添加父目录到Python路径，以便导入pet模块
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from config import PetConfig
 from desktop_pet import DesktopPet
 from mood import Mood

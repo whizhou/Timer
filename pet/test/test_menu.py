@@ -1,8 +1,13 @@
-#!/usr/bin/env python3
+
 """
 测试右键菜单功能
 """
 import sys
+import os
+
+# 添加父目录到Python路径，以便导入pet模块
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from PyQt5.QtWidgets import QApplication
 from desktop_pet_ui import DesktopPetUI
 from config import PetConfig
