@@ -379,6 +379,8 @@ class DesktopPetUI(QLabel):
         # 添加菜单项
         chat_action = menu.addAction("聊天")
         menu.addSeparator()
+        refresh_action = menu.addAction("刷新桌宠状态")
+        menu.addSeparator()
         account_action = menu.addAction("关联日程管理账号")
         menu.addSeparator()
         exit_action = menu.addAction("退出")
@@ -389,6 +391,8 @@ class DesktopPetUI(QLabel):
         # 处理菜单动作
         if action == chat_action:
             self._handle_chat_action()
+        elif action == refresh_action:
+            self._handle_refresh_action()
         elif action == account_action:
             self._handle_account_action()
         elif action == exit_action:
@@ -407,6 +411,16 @@ class DesktopPetUI(QLabel):
         # 通知控制器开始聊天
         if self.controller:
             self.controller.start_chat()
+
+    def _handle_refresh_action(self):
+        """处理刷新桌宠状态动作"""
+        try:
+            from schedule_manager import ScheduleManager
+            schedule_manager = ScheduleManager()
+            schedule_manager.update_schedules()
+            print("桌宠状态已刷新，日程数据已更新")
+        except Exception as e:
+            print(f"刷新桌宠状态失败: {e}")
 
     def _handle_account_action(self):
         """处理关联日程管理账号动作"""

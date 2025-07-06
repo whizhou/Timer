@@ -15,16 +15,10 @@ class Mood:
         self.mood_timestamp = time.time()
         self.schedule_manager = ScheduleManager()
         self.active_count = 0
-        self.count = 0
 
     def getMoodType(self):
         """根据当前任务信息，获取当前心情类型"""
-        if self.count != 0:
-            self.count = (self.count + 1) % 50  # 每50次调用获取一次活跃日程数量
-            return self.moodType
-        
-        self.count = (self.count + 1) % 50  # 每50次调用获取一次活跃日程数量
-        self.active_count = self.schedule_manager.get_active_schedule_count()
+        self.active_count = self.schedule_manager.get_upcoming_schedules_summary_count()
         print(f"活跃日程数量: {self.active_count}")
         # 根据活跃日程数量设置心情
         if self.active_count == 0:

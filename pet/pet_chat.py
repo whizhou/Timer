@@ -2,6 +2,7 @@ import sys
 import os
 import time
 import requests
+from config import PetConfig
 from PyQt5.QtWidgets import (QApplication, QWidget, QVBoxLayout, QHBoxLayout, 
                              QTextEdit, QLineEdit, QPushButton, QLabel, 
                              QScrollArea, QFrame, QSplitter, QListWidget, 
@@ -9,10 +10,10 @@ from PyQt5.QtWidgets import (QApplication, QWidget, QVBoxLayout, QHBoxLayout,
 from PyQt5.QtCore import Qt, QSize, pyqtSignal, QRect, QTimer
 from PyQt5.QtGui import QIcon, QPixmap, QColor, QPainter, QPen, QBrush, QFont, QPalette
 
+
 current_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.dirname(current_dir)
-BASE_URL = "https://whizhou.pythonanywhere.com/"
-
+BASE_URL = PetConfig.BASE_URL
 class MessageBubble(QFrame):
     """聊天气泡组件"""
     def __init__(self, text, is_user=True, avatar_path=None, parent=None):

@@ -8,7 +8,8 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont, QIcon, QColor
 import os
 
-BASE_URL = "https://whizhou.pythonanywhere.com/"
+from config import PetConfig
+BASE_URL = PetConfig.BASE_URL
 
 
 def get_resource_path(relative_path):

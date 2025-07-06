@@ -8,12 +8,30 @@ import requests
 
 from pet_login import get_session_id
 
-BASE_URL = "https://whizhou.pythonanywhere.com/"
+from config import PetConfig
+BASE_URL = PetConfig.BASE_URL
+SCHEDULE_REMINDER_DAYS = PetConfig.SCHEDULE_REMINDER_DAYS
 
+def singleton(cls):
+    """单例装饰器"""
+    instances = {}
+    
+    def get_instance(*args, **kwargs):
+        if cls not in instances:
+            instances[cls] = cls(*args, **kwargs)
+        return instances[cls]
+    
+    return get_instance
+
+@singleton
 class ScheduleManager:
-    """管理日程数据的类"""
+    """管理日程数据的单例类"""
     
     def __init__(self, update_interval: int = 3):
+        # 检查是否已经初始化过
+        if hasattr(self, '_initialized'):
+            return
+            
         # self.schedules_file = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 
         #                                  "backends", "data", "example_schedules.json")
         self.schedules = []
@@ -21,7 +39,10 @@ class ScheduleManager:
         self.update_interval = update_interval
         self.count = 0
         self.summary = []
-    #     self._start_update_thread()
+        # self._start_update_thread()
+        
+        # 标记已初始化
+        self._initialized = True
     
     # def _start_update_thread(self):
     #     """启动自动更新线程"""
@@ -36,15 +57,19 @@ class ScheduleManager:
     def update_schedules(self) -> None:
         """更新日程数据"""
         try:
-            session_id = get_session_id()
-            if not session_id:
-                raise ValueError("Session ID is not set. Please log in first.")
-            response = requests.get(
-                f"{BASE_URL}/schedule/running",
-                json={'schedules': self.schedules},
-                cookies={'session': session_id},
-            )
-            self.schedules = response.json()
+            # session_id = get_session_id()
+            # if not session_id:
+            #     raise ValueError("Session ID is not set. Please log in first.")
+            # response = requests.get(
+            #     f"{BASE_URL}/schedule/running",
+            #     json={'schedules': self.schedules},
+            #     cookies={'session': session_id},
+            # )
+            # self.schedules = response.json()
+            self.schedules = self.get_upcoming_schedules_summary(right_now=True)
+            # print("2")
+            print(f"日程数量: {len(self.schedules)}")
+            print(self.schedules)
         except Exception as e:
             print(f"Error updating schedules: {e}")
             self.schedules = []
@@ -61,61 +86,52 @@ class ScheduleManager:
     
     def get_schedules(self) -> List[Dict[str, Any]]:
         """获取所有日程"""
-        self.update_schedules()
-        return self.schedules
+        return self.summary
     
     def get_schedule_count(self) -> int:
         """获取日程数量"""
-        self.update_schedules()
         print(f"日程数量: {len(self.schedules)}")
-        return len(self.schedules)
+        return len(self.summary)
     
-    def get_active_schedules(self) -> List[Dict[str, Any]]:
+    def get_active_schedules(self, right_now = False) -> List[Dict[str, Any]]:
         """获取当前活跃的日程（未过期的日程）"""
-        active_schedules = []
-        self.update_schedules()
-        active_schedules = self.schedules.copy()
-        return active_schedules
+        return self.get_upcoming_schedules_summary_count()
     
     
-    
-    def get_active_schedule_count(self) -> int:
+    def get_active_schedule_count(self, right_now = False) -> int:
         """获取活跃日程数量"""
-        # self.update_schedules()
-        return len(self.get_active_schedules())
+        return self.get_upcoming_schedules_summary_count(right_now=right_now)
 
-    def get_upcoming_schedules_summary(self) -> str:
-        """获取明天和后天截止的日程信息"""
-        if self.count != 0:
-            self.count = (self.count + 1) % 50
+    def get_upcoming_schedules_summary(self, right_now = False, days = SCHEDULE_REMINDER_DAYS) -> str:
+        """获取未来days天截止的日程信息"""
+        if right_now == False:
             return self.summary
-        
-        self.count = (self.count + 1) % 50
-        tomorrow_schedules = []
-        day_after_schedules = []
         
         try:
             session_id = get_session_id()
+            self.summary = []   # 清空summary, 避免重复添加 && 刷新，去除旧日程
             if not session_id:
                 raise ValueError("Session ID is not set. Please log in first.")
-            response = requests.get(
-                f"{BASE_URL}/schedule/titles/1",
-                # json={'schedules': self.schedules},
-                cookies={'session': session_id},
-            )
-            tomorrow_schedules = response.json()['titles']
-            response = requests.get(
-                f"{BASE_URL}/schedule/titles/2",
-                # json={'schedules': self.schedules},
-                cookies={'session': session_id},
-            )
-            day_after_schedules = response.json()['titles']
+            for i in range(0, days):
+                response = requests.get(
+                    f"{BASE_URL}/schedule/titles/{i}",
+                    # json={'schedules': self.schedules},
+                    cookies={'session': session_id},
+                )
+                schedules = response.json()['titles']
+                self.summary.extend(schedules)
         except Exception as e:
             print(f"Error updating schedules: {e}")
         
-        
-        self.summary = tomorrow_schedules + day_after_schedules
         return self.summary
     
-
-print(ScheduleManager().get_upcoming_schedules_summary())
+    def get_upcoming_schedules_summary_count(self, right_now = False, days = SCHEDULE_REMINDER_DAYS) -> int:
+        """获取未来days天截止的日程信息数量"""
+        return len(self.get_upcoming_schedules_summary(right_now=right_now, days=days))
+    
+print("1")
+ScheduleManager().update_schedules()
+print("2")
+print(ScheduleManager().get_active_schedules())
+print("3")
+print(ScheduleManager().get_upcoming_schedules_summary(right_now=True))

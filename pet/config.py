@@ -6,6 +6,11 @@ import os
 
 class PetConfig:
     """桌宠全局配置类"""
+    # BASE_URL
+    BASE_URL = "https://whizhou.pythonanywhere.com/"
+
+    # 日程提醒时限（未来x天）
+    SCHEDULE_REMINDER_DAYS = 3
     
     # 获取当前脚本的绝对路径
     CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
