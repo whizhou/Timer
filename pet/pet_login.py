@@ -28,14 +28,8 @@ def get_data_dir():
     """获取数据目录路径，兼容 PyInstaller 运行时"""
     if getattr(sys, 'frozen', False):
         # PyInstaller 打包后的情况
-        # 使用用户目录下的应用数据文件夹
-        app_name = "TimerPet"
-        if sys.platform == "win32":
-            data_dir = os.path.join(os.path.expanduser("~"), "AppData", "Local", app_name)
-        elif sys.platform == "darwin":
-            data_dir = os.path.join(os.path.expanduser("~"), "Library", "Application Support", app_name)
-        else:
-            data_dir = os.path.join(os.path.expanduser("~"), ".config", app_name)
+        # 使用exe文件同目录下的应用数据文件夹
+        data_dir = os.path.join(os.path.dirname(sys.executable), "data")
     else:
         # 开发环境，使用当前文件所在目录下的 data 文件夹
         data_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
