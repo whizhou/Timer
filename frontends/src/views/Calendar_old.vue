@@ -233,14 +233,14 @@ const fetchSchedules = async () => {
     const response = await axios.get("/schedule/");
     schedules.value = response.data.schedules;
 
-    console.log("获取到的日程数据:", schedules.value);
+    // console.log("获取到的日程数据:", schedules.value);
 
     // 检查日程数据结构，特别是ID字段
     if (schedules.value && schedules.value.length > 0) {
       const firstSchedule = schedules.value[0];
-      console.log("日程数据结构:", Object.keys(firstSchedule));
-      console.log("ID字段值:", firstSchedule.id);
-      console.log("ID字段类型:", typeof firstSchedule.id);
+      // console.log("日程数据结构:", Object.keys(firstSchedule));
+      // console.log("ID字段值:", firstSchedule.id);
+      // console.log("ID字段类型:", typeof firstSchedule.id);
     }
   } catch (error) {
     console.error("获取日程数据失败:", error);
@@ -358,12 +358,12 @@ const openCreateDialog = () => {
 
 // 查看日程详情
 const viewSchedule = (schedule) => {
-  console.log("查看日程:", schedule);
-  console.log("日程ID:", schedule.id);
-  console.log("日程ID类型:", typeof schedule.id);
+  // console.log("查看日程:", schedule);
+  // console.log("日程ID:", schedule.id);
+  // console.log("日程ID类型:", typeof schedule.id);
 
   selectedSchedule.value = { ...schedule }; // 使用解构赋值创建新对象
-  console.log("选中的日程:", selectedSchedule.value);
+  // console.log("选中的日程:", selectedSchedule.value);
   viewDialogVisible.value = true;
 };
 
@@ -388,7 +388,7 @@ const openEditDialog = () => {
     remind_before: selectedSchedule.value.remind_before || 15,
   };
 
-  console.log("编辑日程ID:", scheduleForm.value.id); // 添加日志，检查ID是否正确
+  // console.log("编辑日程ID:", scheduleForm.value.id); // 添加日志，检查ID是否正确
 
   viewDialogVisible.value = false;
   editDialogVisible.value = true;
@@ -455,7 +455,7 @@ const saveSchedule = async () => {
         return;
       }
 
-      console.log("提交编辑日程:", formDataUPT); // 添加日志，检查提交的数据
+      // console.log("提交编辑日程:", formDataUPT); // 添加日志，检查提交的数据
 
       response = await axios.put(`/schedule/${formDataUPT.id}`, {
         schedule: formDataUPT,
@@ -469,7 +469,7 @@ const saveSchedule = async () => {
       }
     } else {
       // 创建新日程
-      console.log("提交新建日程:", formDataUPT); // 添加日志，检查提交的数据
+      // console.log("提交新建日程:", formDataUPT); // 添加日志，检查提交的数据
 
       response = await axios.post("/schedule/", {
         schedules: [formDataUPT],

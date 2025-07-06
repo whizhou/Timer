@@ -75,13 +75,13 @@ function GetDataFromServer (TargetURL) {
     }).then((res)=>{
         return res;
     }).catch(()=>{
-        console.log(TargetURL);
+        // console.log(TargetURL);
         return undefined;
     })
 }
 
 function PostDataToServer (TargetURL,DATA) {
-    console.log(globalStore.UserID);
+    // console.log(globalStore.UserID);
     return axios({
         method : 'post',
         url : TargetURL,
@@ -130,9 +130,9 @@ function SyncFromServer() {
     withCredentials : true,
   }).then((res) => {
     globalStore.UserSchedules = res.data.schedules;
-    console.log(globalStore.UserSchedules);
+    // console.log(globalStore.UserSchedules);
   }).catch((error) => {
-    console.log("server error");
+    // console.log("server error");
     throw error; 
   });
 }

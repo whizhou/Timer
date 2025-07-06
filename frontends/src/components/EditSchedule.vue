@@ -163,7 +163,7 @@ export default {
     
     // 复制表单
     init() {
-      console.log("Initializing form with origin data:", this.origin)
+      // console.log("Initializing form with origin data:", this.origin)
       
       this.OriginId = cloneDeep(this.origin.id);
       this.form = cloneDeep(initialForm);
@@ -171,8 +171,8 @@ export default {
       this.form.finished = cloneDeep(this.origin.finished);
       this.form.archive = cloneDeep(this.origin.archive);
 
-      console.log(this.form.finished);
-      console.log(this.form.archive);
+      // console.log(this.form.finished);
+      // console.log(this.form.archive);
       
       // 设置临时时间变量
       this.tempBeginDate = this.origin.content.begin_time?.[0] || "";
@@ -203,16 +203,16 @@ export default {
     
     // 提交表单
     async submit() {
-      console.log("Submit button clicked");
+      // console.log("Submit button clicked");
       this.submitting = true;
       
       try {
-        console.log("Form data before filtering:", JSON.parse(JSON.stringify(this.form)));
+        // console.log("Form data before filtering:", JSON.parse(JSON.stringify(this.form)));
         
         // 过滤空值
         const filteredContent = this.filter(this.form.content)
         
-        console.log("Filtered content:", filteredContent);
+        // console.log("Filtered content:", filteredContent);
         
         // 验证必填项
         if (!filteredContent.title) {
@@ -231,28 +231,28 @@ export default {
           }
         }
         
-        console.log("Syncing from server...");
+        // console.log("Syncing from server...");
         await SyncFromServer();
-        console.log("Sync complete");
+        // console.log("Sync complete");
         
-        console.log("Adding new schedule...");
+        // console.log("Adding new schedule...");
         const retValue = await AddSchedule({
           finished: this.form.finished,
           archive: this.form.archive,
           content: filteredContent
         });
-        console.log("AddSchedule result:", retValue);
+        // console.log("AddSchedule result:", retValue);
         
-        console.log("Deleting original schedule ID:", this.OriginId);
+        // console.log("Deleting original schedule ID:", this.OriginId);
         await DeleteSchedule(this.OriginId);
-        console.log("Delete complete");
+        // console.log("Delete complete");
         
         ElMessage.success("日程修改成功")
         this.Visible = false
         this.$emit('change', cloneDeep(retValue));
         
       } catch (error) {
-        console.error("Submit error:", error);
+        // console.error("Submit error:", error);
         ElMessage.error("操作失败: " + error.message);
       } finally {
         this.submitting = false;
