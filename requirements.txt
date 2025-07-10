@@ -1,7 +1,7 @@
 flask
 openai
 pyyaml
-pathlib
 requests
 pytest
 Flask-Session
+flask_cors

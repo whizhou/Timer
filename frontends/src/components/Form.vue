@@ -19,7 +19,7 @@
         <el-input type="textarea" v-model="form.content.content"></el-input>
     </el-form-item>
     <el-form-item label="类型">
-        <el-input type="textarea" v-model="form.type"></el-input>
+        <el-input type="textarea" v-model="form.content.tag"></el-input>
     </el-form-item>
     <el-form-item>
         <el-button type="primary" @click="onSubmit">提交</el-button>
@@ -35,8 +35,8 @@
         form: {
           id: 0,
           title : "",
-          type : "",
           content : {
+            tag : "",
             begin_time : "",
             end_time : "",
             content : "",
@@ -49,7 +49,7 @@
       clean () {
         this.form.id=0;
         this.form.title=
-        this.form.type=
+        this.form.content.tag=
         this.form.content.content=
         this.form.content.begin_time=
         this.form.content.end_time=

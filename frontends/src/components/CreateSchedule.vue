@@ -1,8 +1,11 @@
 <template>
   <div>
+
+    <!-- AAA -->
     <el-button plain @click="Visible = true">
       <b>创建日程</b>
     </el-button>
+    <!-- AAA -->
 
     <el-dialog v-model="Visible" title="创建日程" :before-close="cancel">
       <el-form ref="form" :model="form" label-width="100px">
@@ -49,15 +52,15 @@
         </el-form-item>
         
         <el-form-item label="内容">
-          <el-input type="textarea" v-model="form.content.content" rows="4"></el-input>
+          <el-input type="textarea" v-model="form.content.content" :rows="4"></el-input>
         </el-form-item>
         
         <el-form-item label="类型">
-          <el-select v-model="form.type" placeholder="请选择类型">
-            <el-option label="工作" value="work"></el-option>
-            <el-option label="学习" value="study"></el-option>
-            <el-option label="生活" value="life"></el-option>
-            <el-option label="娱乐" value="entertainment"></el-option>
+          <el-select v-model="form.content.tag" placeholder="请选择类型">
+            <el-option label="工作" value="工作"></el-option>
+            <el-option label="学习" value="学习"></el-option>
+            <el-option label="生活" value="生活"></el-option>
+            <el-option label="娱乐" value="娱乐"></el-option>
           </el-select>
         </el-form-item>
         
@@ -78,8 +81,8 @@ import { AddSchedule } from '../utils/DataManager'
 
 // 初始表单数据
 const initialForm = {
-  type: "",
   content: {
+    tag: "",
     title: "",
     begin_time: ["", ""],
     end_time: ["", ""],

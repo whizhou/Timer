@@ -7,19 +7,36 @@
     >
       <template #header>
         <div class="card-header">
-          <span><b>{{ card.content.title }}</b></span>
+          <span v-if="card.content!=undefined"><b>{{ card.content.title }}</b></span>
+          <span v-else><b>无题</b></span>
+          <edit-schedule :origin="card"></edit-schedule>
           <el-button 
             class="delete-btn" 
             type="text" 
             @click="deleteCards(card.id)"
           >删除</el-button>
+          <!-- <span v-if="card.status!=true"><el-button 
+            class="delete-btn" 
+            type="text" 
+            @click="done(card)"
+          >完成</el-button></span>
+                    <span v-if="card.status!=true"><el-button 
+            class="delete-btn" 
+            type="text" 
+            @click="archieve(card)"
+          >归档</el-button></span> -->
         </div>
       </template>
       <div class="card-content">
         <div v-for="(value, key) in card.content">
-          <p v-if="key != 'title'">
-            <b>{{ key }} : </b>{{ value }}
-          </p>
+          <div v-if="key != 'title' && Trans[key]!=undefined && value != ''">
+            <p v-if="value.constructor==Array">
+              <b>{{ Trans[key] }} : </b>{{ value[0] }} {{ value[1] }}
+            </p>
+            <p v-else>
+              <b>{{ Trans[key] }} : </b>{{ value }}
+            </p>
+          </div>
         </div>
       </div>
     </el-card>
@@ -27,7 +44,11 @@
 </template>
 
 <script setup>
-import { DeleteSchedule } from '../utils/DataManager';
+import globalStore from '@/utils/GlobalStore';
+import Trans from '@/utils/Trans';
+import { DeleteSchedule,GetScheduleIndex,PutDataToServer,serverURL } from '../utils/DataManager';
+import EditSchedule from './EditSchedule.vue';
+
 import { ref, watch } from 'vue';
 
 const props = defineProps({
@@ -39,6 +60,20 @@ const props = defineProps({
 
 const deleteCards = (id) => {
   DeleteSchedule(id);
+};
+
+async function done (card) {
+    const index =GetScheduleIndex(card.id);
+    globalStore.UserSchedules[index].finished=true;
+    card.finished=true;
+    await PutDataToServer(serverURL+"schedule/"+String(card.id),card)
+};
+
+async function archieve (card) {
+    const index =GetScheduleIndex(card.id);
+    globalStore.UserSchedules[index].archieve=true;
+    card.archieve=true;
+    await PutDataToServer(serverURL+"schedule/"+String(card.id),card)
 };
 
 </script>

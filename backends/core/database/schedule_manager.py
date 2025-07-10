@@ -27,12 +27,6 @@ class ScheduleManager(Database):
         # Database.init_app(self, app)
         if auth is not None:
             self.login(auth)
-        elif app.config.get('MODE') == 'development':
-            self.login('dev')
-        elif app.config.get('MODE') == 'testing':
-            self.login('test')
-        elif app.config.get('MODE') == 'default':
-            self.login('default')
         
         
     def read_schedules(self) -> List[Dict]:
@@ -42,6 +36,24 @@ class ScheduleManager(Database):
         """
         return self._file.get('schedules', [])
     
+    def get_running_schedules(self) -> List[Dict]:
+        """Get the currently running schedules.
+        Returns:
+            List[Dict]: A list of currently running schedules.
+        """
+        running_schedules = []
+        for schd in self._file.get('schedules', []):
+            if schd.get('finished', False) or schd.get('archive', False):
+                continue
+            # print(f"Checking schedule: {schd['id']}, content: {schd['content']}")
+            end_time = ' '.join(schd['content']['end_time']).strip()
+            end_time = datetime.strptime(end_time, '%Y-%m-%d %H:%M:%S')
+            if end_time > datetime.now():
+                running_schedules.append(schd)
+            
+        # print(f"Running schedules: {running_schedules}")
+
+        return running_schedules
 
     def write_schedule(self, schedule: dict) -> bool:
         """Write a new schedule to the JSON file.
@@ -86,6 +98,16 @@ class ScheduleManager(Database):
                 # If no ID is provided, generate a new ID
                 new_id = max([s['id'] for s in self._file['schedules']], default=0) + 1
                 sched['id'] = new_id
+
+            if 'finished' not in sched:
+                # If no finished status is provided, set it to False
+                sched['finished'] = False
+            if 'archive' not in sched:
+                # If no archived status is provided, set it to False
+                sched['archive'] = False
+            if 'tag' not in sched['content'] or sched['content']['tag'] is None:
+                # If no tag is provided, set it to an empty list
+                sched['content']['tag'] = 'default'
 
             if 'timestamp' not in sched or sched['timestamp'] is None:
                 # If no timestamp is provided, set it to the current time
@@ -146,11 +168,11 @@ class ScheduleManager(Database):
             if schedule['id'] == schedule_id:
                 schedule['archived'] = True
                 schedule['archived_time'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-                del self._file['schedules'][i]
+                # del self._file['schedules'][i]
 
-                if 'archived_schedules' not in self._file:
-                    self._file['archived_schedules'] = []
-                self._file['archived_schedules'].append(schedule)
+                # if 'archived_schedules' not in self._file:
+                #     self._file['archived_schedules'] = []
+                # self._file['archived_schedules'].append(schedule)
                 return True
         return False
     
@@ -161,9 +183,11 @@ class ScheduleManager(Database):
         """
         reminders = []
         for schedule in self._file['schedules']:
-            if 'remind_start' in schedule:
-                remind_start = ' '.join(schedule['remind_start']).strip()
-                remind_start = datetime.strptime(remind_start, '%Y-%m-%d %H:%M')
+            if schedule.get('finished', False) or schedule.get('archived', False):
+                continue
+            if 'remind_start' in schedule['content']:
+                remind_start = ' '.join(schedule['content']['remind_start']).strip()
+                remind_start = datetime.strptime(remind_start, '%Y-%m-%d %H:%M:%S')
                 if remind_start < datetime.now():
                     reminders.append(schedule)
         return reminders
@@ -175,10 +199,16 @@ class ScheduleManager(Database):
         """
         incoming_schedules = []
         for schedule in self._file['schedules']:
-            if 'remind_before' in schedule:
-                begin_time = ' '.join(schedule['begin_time']).strip()
-                begin_time = datetime.strptime(begin_time, '%Y-%m-%d %H:%M')
-                remind_before = schedule.get('remind_before', 0)
+            if schedule.get('finished', False) or schedule.get('archived', False):
+                continue
+            if 'remind_before' in schedule['content']:
+                if schedule['content'].get('begin_time') is not None:
+                    begin_time = ' '.join(schedule['content']['begin_time']).strip()
+                    begin_time = datetime.strptime(begin_time, '%Y-%m-%d %H:%M:%S')
+                else:
+                    begin_time = ' '.join(schedule['content']['end_time']).strip()
+                    begin_time = datetime.strptime(begin_time, '%Y-%m-%d %H:%M:%S')
+                remind_before = schedule['content'].get('remind_before', 0)
                 # remind_before is the time (in minutes) to remind before the schedule starts (optional)
                 remind_start = begin_time - timedelta(minutes=remind_before)
                 if remind_start < datetime.now():
@@ -234,5 +264,5 @@ class ScheduleManager(Database):
         Returns:
             int: The total number of schedules.
         """
-        return len(self._file.get('schedules', []))
+        return len(self.get_running_schedules())
 

@@ -6,6 +6,8 @@
 
 ## Schedule Routes
 
+`schedule_routes` 的前缀为 /schedule，即所有url都由此前缀开始，上一版的后端接口文档有部分接口未写明此前缀，请注意。
+
 返回值中，大致有如下 key-value 键值对：
 
 + `schedules: []` 多个日程列表
@@ -122,7 +124,7 @@
     {"success": true}
     ```
 
-### URL: `/archive/<int:id>`
+### URL: `/schedule/archive/<int:id>`
 
 + **Methods**: `GET` - 根据 `id` 归档日程（标记完成）
 
@@ -132,7 +134,7 @@
     {"success": true}
     ```
 
-### URL: `/remind_start`
+### URL: `/schedule/remind_start`
 
 + **Methods**: `GET` - 获取设置了每日提醒（从某一日期开始）
 
@@ -144,7 +146,7 @@
     {"schedules": []}
     ```
 
-### URL: `/remind_before`
+### URL: `/schedule/remind_before`
 
 + **Methods**: `GET` - 获取设置了提前提醒（开始时间前提醒）
 
@@ -156,7 +158,7 @@
     {"shedules": {}}
     ```
 
-### URL: `/sync`
+### URL: `/schedule/sync`
 
 + **Methods**: `GET` - 同步传入日程
 
@@ -180,7 +182,7 @@
     {"schedules": []}
     ```
 
-### URL: `/quantity`
+### URL: `/schedule/quantity`
 
 + **Methods**：`GET` - 获取日程数量
 
@@ -191,3 +193,79 @@
   ```json
   {"quantity": 123}
   ```
+
+### URL: `/schedule/quantity/<int:days>`
+
++ **Methods**: `GET` - 获取 days 天的日程数量
+
+  + **Response**：同上
+
+### URL: `/schedule/titles/<int:days>`
+
++ **Methods**: `GET` - 获取 days 天的日程标题
+
+  + **Response**
+
+    返回改天的所有未归档日程的标题列表
+
+    ```json
+    {"titles": []}
+    ```
+
+## Auth Routes
+
+url prefix: `/auth`
+
+实现登录功能后，后端会对前端的每次访问验证 cookie 中的 `user_id`。
+如果 cookie 中不包含 `user_id` 信息或者信息不正确，则会直接返回报错信息：
+
+```json
+{"success": false, "error": "error infomation"}
+```
+
+### URL: `/auth/register`
+
++ **Methods**: `POST` - 用户注册
+
+  实现用户注册功能，返回注册是否成功；如果失败则包含 `error`
+
+  + **Requests**:
+
+    通过 POST 方法直接传入 `username` 和 `password`
+
+    ```json
+    {"username": "user", "password": 123}
+    ```
+
+  + **Response**:
+
+    如果成功 (`success=true`) 则不包含报错信息 `error`
+
+    ```json
+    {"success": false, "error": "Invalid request method."}
+    ```
+
+### URL: `/auth/login`
+
++ **Methods**: `POST` - 用户登录
+
+  验证 `username` 和 `password`，返回是否登录成功，并在 cookie 中隐式包含 `user_id` 用于后续访问。
+
+  + **Requests**:
+
+    通过 POST 方法直接传入 `username` 和 `password`
+
+    ```json
+    {"username": "user", "password": 123}
+    ```
+
+  + **Response**:
+
+    如果成功 (`success=true`) 则不包含报错信息 `error`
+
+    ```json
+    {"success": false, "error": "Invalid request method."}
+    ```
+
+    成功登录后，会在 cookie 中隐式返回 `user_id`，需要在后续范围中携带，否则会认为是未登录。
+

@@ -1,6 +1,7 @@
 import sys
 import os
 import time
+import requests
 from PyQt5.QtWidgets import (QApplication, QWidget, QVBoxLayout, QHBoxLayout, 
                              QTextEdit, QLineEdit, QPushButton, QLabel, 
                              QScrollArea, QFrame, QSplitter, QListWidget, 
@@ -10,6 +11,7 @@ from PyQt5.QtGui import QIcon, QPixmap, QColor, QPainter, QPen, QBrush, QFont, Q
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.dirname(current_dir)
+BASE_URL = "http://127.0.0.1:5000"
 
 class MessageBubble(QFrame):
     """聊天气泡组件"""
@@ -181,8 +183,7 @@ class PetChatWindow(QWidget):
         self.user_avatar = None  # 用户头像路径
         self.id = id  # 桌宠ID
         # 使用头像文件夹下的图片作为桌宠头像
-
-        self.pet_avatar_path = project_root + "/pet/static/charactor/" + str(self.id) + "/头像/image.png"
+        self.pet_avatar_path = os.path.join(current_dir, "static/charactor/" + str(self.id) + "/头像/image.png")
         try:
             self.pet_avatar = self.pet_avatar_path
             print(f"使用头像: {self.pet_avatar}")
@@ -498,14 +499,35 @@ class PetChatWindow(QWidget):
         
         # 根据是否启用深度思考模式，决定思考时间显示
         thinking_time = 2 if self.use_deep_thinking else 1
+        
+        # 检查特殊指令
+        if self.pet_controller and ("陪我学习吧" in user_message or "陪我学习" in user_message):
+            self.add_message("好呀，我来陪你一起学习！", False, True, thinking_time)
+            self.pet_controller.play_study_with_me_animation()
+            return
+        if self.pet_controller and ("休息一下吧" in user_message or "休息一下" in user_message):
+            self.add_message("好呀，休息一下~", False, True, thinking_time)
+            self.pet_controller.play_rest_c_then_restore()
+            return
 
-        
-        
         # 简单的关键词匹配响应作为示例
         response = ""
+        # lower_msg = "请模仿桌面宠物的语气回复，语气日常一点、不要太过热情，可以的话偶尔在每句话最后加个\"喵\":" + user_message.lower()
         lower_msg = user_message.lower()
         
-        response = "正在开发中的ai回复信息，敬请期待..."
+        from pet_login import get_session_id
+        session_id = get_session_id()
+
+        response = requests.post(
+            f"{BASE_URL}/chat/pet_chat",
+            json={'message': lower_msg},
+            cookies={'session': session_id},
+        )
+        try:
+            response = response.json()["response"]
+        except:
+            response = "出现了一些小问题~请检查网络连接并确认已经关联日程账号，或者稍后再试喵~"
+
         # # 深度思考模式下，可以给出更详细的回复
         # if self.use_deep_thinking:
         #     if "你好" in lower_msg or "hello" in lower_msg or "hi" in lower_msg:
@@ -583,7 +605,7 @@ class PetChatWindow(QWidget):
         
         # 如果有控制器，可以通过它来更新桌宠的状态
         if self.pet_controller:
-            self.pet_controller.interactWithUser(response)
+            self.pet_controller.interact_with_user(response)
     
     def add_message(self, text, is_user=True, show_thinking=False, thinking_time=1):
         """添加消息到聊天区域"""

@@ -57,6 +57,19 @@ window.addEventListener('beforeinstallprompt', (e) => {
   window.deferredPrompt = e
   console.log('捕获到beforeinstallprompt事件')
 })
+// import VueCookies from 'vue-cookies'
+
+import VMdPreview from '@kangc/v-md-editor/lib/preview';
+import '@kangc/v-md-editor/lib/style/preview.css';
+import githubTheme from '@kangc/v-md-editor/lib/theme/github.js';
+import '@kangc/v-md-editor/lib/theme/style/github.css';
+
+// highlightjs
+import hljs from 'highlight.js';
+
+VMdPreview.use(githubTheme, {
+  Hljs: hljs,
+});
 
 const app = createApp(App)
 
@@ -70,6 +83,8 @@ app.component("chatzone",ChatZone)
 app.use(ElementPlus)
 app.use(router)
 app.use(Chat)
+// app.use(VueCookies)
+app.use(VMdPreview)
 
 app.mount('#app')
 

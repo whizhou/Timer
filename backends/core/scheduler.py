@@ -24,6 +24,13 @@ class Scheduler:
             dict: A List of schedules read from the file.
         """
         return self.manager.read_schedules()
+    
+    def get_running_schedules(self) -> List[Dict]:
+        """Get the currently running schedules.
+        Returns:
+            List[Dict]: A list of currently running schedules.
+        """
+        return self.manager.get_running_schedules()
 
     def create_schedule(self, schedules: List[Dict]) -> List[int]:
         """Create a schedule based on the provided content.
@@ -112,3 +119,14 @@ class Scheduler:
             int: The total number of schedules.
         """
         return self.manager.get_schedule_quantity()
+
+    def login(self, user_id: int) -> None:
+        """Log in a user by their ID.
+        Args:
+            user_id (int): The ID of the user to log in.
+        """
+        self.manager.login(user_id)
+
+    def logout(self) -> None:
+        """Log out the current user."""
+        self.manager.logout()

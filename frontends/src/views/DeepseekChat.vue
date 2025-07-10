@@ -2,12 +2,6 @@
   <div class="chat-page">
     <el-container>
       <el-aside width="240px" class="sidebar">
-        <div class="sidebar-header">
-          <div class="app-logo">
-            <img src="https://www.deepseek.com/favicon.ico" alt="Logo" />
-            <h2>Timer</h2>
-          </div>
-        </div>
         <leftbar></leftbar>
       </el-aside>
 
@@ -151,6 +145,8 @@ import ChattingBox from "../components/ChattingBox.vue";
 import { cloneDeep } from "lodash";
 import axios from "axios";
 import Tesseract from "tesseract.js";
+import globalStore from "@/utils/GlobalStore";
+import { SyncFromServer,PostDataToServer,GetDataFromServer,serverURL } from "@/utils/DataManager";
 
 export default {
   components: {
@@ -161,7 +157,7 @@ export default {
       messages: [
         { text: "你好！", align: "left" },
         { text: "你好！", align: "right" },
-        { text: "功能开发中... ...", align: "left" },
+        // { text: "功能开发中... ...", align: "left" },
       ],
       userinput: "",
       sessionId: null, // 存储会话ID
@@ -175,14 +171,28 @@ export default {
       recognition: null, // 语音识别对象
     };
   },
-  mounted() {
-    // 初始欢迎消息
-    this.messages = [
-      {
-        text: "你好！我是Timer智能助手，有什么我可以帮助你的吗？我可以帮你查看和管理日程。",
-        align: "left",
-      },
-    ];
+  async mounted() {
+    try {
+      // 异步获取服务器数据
+      const response = await GetDataFromServer(serverURL + "chat/remind");
+      
+      // 检查响应有效性
+      if (response?.data?.response) {
+        this.messages = [{
+          text: response.data.response,
+          align: "left"
+        }];
+      } else {
+        throw new Error("无效的服务器响应");
+      }
+    } catch (error) {
+      console.error("获取欢迎消息失败:", error);
+      // 设置默认消息
+      this.messages = [{
+        text: "您好，欢迎使用系统！",
+        align: "left"
+      }];
+    }
 
     // 尝试从localStorage获取保存的会话ID，如果没有则生成一个新的
     this.sessionId = localStorage.getItem("chat_session_id");
@@ -416,10 +426,10 @@ export default {
       this.scrollToBottom();
 
       // 检查是否包含日程关键词，如果有则尝试处理日程相关命令
-      if (this.isScheduleRelatedQuery(addms)) {
-        await this.handleScheduleQuery(addms);
-        return;
-      }
+      // if (this.isScheduleRelatedQuery(addms)) {
+      //   await this.handleScheduleQuery(addms);
+      //   return;
+      // }
 
       try {
         // 显示加载状态
@@ -438,26 +448,32 @@ export default {
         };
 
         // 发送请求到后端API
-        const response = await fetch("/chat/", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(requestData),
-          credentials: "include", // 仍然包含cookie作为备选
-        });
+        // const queryP = new URLSearchParams({user_id:globalStore.UserID}).toString();
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
+        // const response = await fetch("/chat?"+queryP, {
+        //   method: "POST",
+        //   headers: {
+        //     "Content-Type": "application/json",
+        //   },
+        //   body: JSON.stringify({...requestData,user_id:globalStore.UserID}),
+        //   credentials: "include", // 仍然包含cookie作为备选
+        // });
+        const response = await PostDataToServer(serverURL+"chat/",requestData)
 
-        const data = await response.json();
+        // if (!response.ok) {
+        //   throw new Error(`HTTP error! Status: ${response.status}`);
+        // }
+
+        const data = await response.data;
 
         // 移除加载状态消息
         this.messages.pop();
 
         // 添加AI回复
-        this.messages.push({ text: data.response, align: "left" });
+        console.log(data);
+        if (data.schedule==undefined)
+          this.messages.push({ text: data.response, align: "left" });
+        else this.messages.push({ text: data.response, align: "left", schedule: data.schedule });
 
         // 保存会话ID
         if (data.session_id) {
@@ -567,14 +583,10 @@ export default {
     // 获取所有日程
     async fetchSchedules() {
       try {
-        const response = await axios.get("/schedule/");
-        this.schedules = response.data.schedules;
-      } catch (error) {
-        console.error("获取日程失败:", error);
-        this.messages.push({
-          text: "抱歉，获取日程失败，请检查网络连接。",
-          align: "left",
-        });
+        await SyncFromServer()
+        this.schedules = cloneDeep(globalStore.UserSchedules);
+      } catch {
+        console.log("error!");
       }
     },
 
@@ -590,14 +602,15 @@ export default {
 
       let scheduleText = "以下是您的所有日程安排：\n\n";
       this.schedules.forEach((schedule, index) => {
-        scheduleText += `${index + 1}. ${schedule.title}\n`;
+        scheduleText += `${index + 1}. ${schedule.content.title}\n`;
         scheduleText += `   开始时间: ${this.formatDateTime(
-          schedule.start_time
+          schedule.content.begin_time
         )}\n`;
         scheduleText += `   结束时间: ${this.formatDateTime(
-          schedule.end_time
+          schedule.content.end_time
         )}\n`;
-        scheduleText += `   状态: ${this.getStatusText(schedule.status)}\n\n`;
+        scheduleText += `   内容: ${schedule.content.content==""?"无":schedule.content.content}\n`;
+        scheduleText += `   状态: ${this.getStatusText(schedule.status?"finished":"running")}\n\n`;
       });
 
       this.messages.push({

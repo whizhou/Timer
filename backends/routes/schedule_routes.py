@@ -3,9 +3,18 @@ from flask import (
 )
 from flask import session
 from typing import List, Dict
+from datetime import datetime, timedelta
 
 bp = Blueprint('schedule', __name__, url_prefix='/schedule')
 
+@bp.before_request
+def check_logged_in():
+    """
+    Check if the user is logged in before processing the request.
+    If not logged in, return an error response.
+    """
+    if g.user is None:
+        return jsonify({'success': False, 'error': 'User not logged in.'}), 401
 
 @bp.route('/', methods=['GET', 'POST'])
 def schedule():
@@ -31,7 +40,19 @@ def schedule():
         # Return all schedules in a JSON file
         schedules: List[Dict] = scheduler.get_schedules()
         return jsonify({'schedules': schedules})
-    
+
+@bp.route('/running', methods=['GET'])
+def running_schedules():
+    """
+    Get the currently running schedules.
+
+    Returns:
+        JSON: {'schedules': List[Dict]} - The list of currently running schedules
+    """
+    from core.core import scheduler
+    running_schedules: List[Dict] = scheduler.get_running_schedules()
+    return jsonify({'schedules': [[running_schedules]]})
+
 @bp.route('/<int:schedule_id>', methods=['GET', 'PUT', 'DELETE'])
 def schedule_by_id(schedule_id: int):
     """
@@ -138,11 +159,45 @@ def quantity():
     quantity = scheduler.get_schedule_quantity()
     return jsonify({'quantity': quantity})
 
-@bp.teardown_request
-def teardown_request(exception):
+@bp.route('/titles/<int:days>', methods=['GET'])
+def tomorrow_titles(days: int):
     """
-    Teardown request to clean up resources.
+    Get the titles of schedules for tomorrow.
+
+    Returns:
+        JSON: {'titles': schedule titles for tomorrow}
+    """
+    from core.core import scheduler
+    schedules = scheduler.get_running_schedules()
+    titles = []
+    target_date = (datetime.now() + timedelta(days=days)).date()
+    for schedule in schedules:
+        schedule_date = datetime.strptime(schedule['content']['end_time'][0], '%Y-%m-%d').date()
+        if schedule_date == target_date:
+            titles.append(schedule['content']['title'])
+    # print(f"Titles for tomorrow ({days} days later): {titles}")
+    return jsonify({'titles': titles})
+
+@bp.route('/quantity/<int:days>', methods=['GET'])
+def tomorrow_quantity(days: int):
+    """
+    Get the quantity of schedules for tomorrow.
+
+    Returns:
+        JSON: {'quantity': int} - The number of schedules for tomorrow
+    """
+    from core.core import scheduler
+    schedules = scheduler.get_running_schedules()
+    target_date = (datetime.now() + timedelta(days=days)).date()
+    quantity = sum(1 for schedule in schedules if datetime.strptime(schedule['content']['end_time'][0], '%Y-%m-%d').date() == target_date)
+    return jsonify({'quantity': quantity})
+
+@bp.after_app_request
+def after_request(response):
+    """
+    After request to clean up resources.
     """
     # Here you can add any cleanup code if needed
     from core.core import scheduler
     scheduler.save()
+    return response
