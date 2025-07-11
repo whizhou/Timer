@@ -1,5 +1,9 @@
 # Timer: Your AI-powered scheduling sidekick—create, track, and manage tasks effortlessly with a smart, interactive companion
 
+## 🧑🏻‍💻 Usage
+
+通过 [Web Page](https://timer-frontends-h27d66ng0-whizhous-projects-7cb8caf3.vercel.app/) 使用 Timer
+
 ## 📚 Ready to Development
 
 建议首先阅读并完善 [docs](/docs) 中的文档
