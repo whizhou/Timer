@@ -2,7 +2,7 @@
 
 ## 🧑🏻‍💻 Usage
 
-通过 [Web Page](https://timer-frontends-h27d66ng0-whizhous-projects-7cb8caf3.vercel.app/) 使用 Timer
+通过 [Web Page](timer-frontends-a12f7h6lc-whizhous-projects-7cb8caf3.vercel.app) 使用 Timer
 
 ## 📚 Ready to Development
 
