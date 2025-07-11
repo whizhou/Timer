@@ -45,6 +45,11 @@ const router = createRouter({
       component: Dashboard,
       meta: { requiresAuth: true },
     },
+    {
+      path: "/dashboard",
+      name: "dashboard",
+      component: Dashboard,
+    },
   ],
 });
 
